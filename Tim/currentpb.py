@@ -126,6 +126,7 @@ logger = Logger()
 class Trader:
     def __init__(self):
         self.price_history = {}
+        self.hold_time = {}
 
     def run(self, state: TradingState) -> Tuple[Dict[Symbol, List[Order]], int, str]:
         result = {}
@@ -141,18 +142,34 @@ class Trader:
             best_ask = min(order_depth.sell_orders.keys()) if order_depth.sell_orders else None
 
             if product == "KELP":
-                if best_bid is not None and best_ask is not None:
-                    spread = best_ask - best_bid
-                    order_size = 4  # Can scale up to 5–10 cautiously
-                    min_spread = 2  # Only quote if spread is wide enough
+                if product == "KELP":
+                    if best_bid is not None and best_ask is not None:
+                        spread = best_ask - best_bid
+                        min_spread = 2
 
-                    if spread >= min_spread:
-                        if current_position > -MAX_POSITION:
-                            # Buy at the bid (add inventory)
-                            orders.append(Order(product, best_bid + 1, order_size))
-                        if current_position < MAX_POSITION:
-                            # Sell at the ask (reduce inventory)
-                            orders.append(Order(product, best_ask - 1, -order_size))
+                        spread_factor = max(1, spread)
+                        inventory_factor = max(0.2, 1 - abs(current_position) / MAX_POSITION)
+                        base_size = 6
+                        max_size = 20
+
+                        order_size = int(base_size * spread_factor * inventory_factor)
+                        order_size = min(max(order_size, 1), max_size)
+
+                        edge_buffer = 1 if spread > 2 else 0
+
+                        if spread >= min_spread:
+                            if current_position > -MAX_POSITION:
+                                orders.append(Order(product, best_bid + edge_buffer, order_size))
+                            if current_position < MAX_POSITION:
+                                orders.append(Order(product, best_ask - edge_buffer, -order_size))
+                        elif abs(current_position) > 0:
+                            fair_price = (best_bid + best_ask) // 2
+                            rebalance_size = min(order_size, abs(current_position))
+                            if current_position > 0:
+                                orders.append(Order(product, fair_price, -rebalance_size))
+                            else:
+                                orders.append(Order(product, fair_price, rebalance_size))
+
 
 
                 
