@@ -159,7 +159,7 @@ class Trader:
                 market_sell_orders = list(order_depth.sell_orders.items())
                 
                 best_bid = market_buy_orders[0][0]
-                best_ask = market_sell_orders[0][0]
+                best_ask = market_sell_orders[0][0]  
                 
                 
                 
@@ -194,7 +194,7 @@ class Trader:
                 # Find my best bid and ask 
                 best_bid_vol = market_buy_orders[0][1]
                 best_ask_vol = market_sell_orders[0][1]
-                low_volume = {0, 1}
+                low_volume = {0, 1} 
                 
                 #If the best bid and ask volume is low, we can match the price with higher volume to make more profit.
                 """"
