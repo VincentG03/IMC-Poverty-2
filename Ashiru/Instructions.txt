@@ -1,3 +1,0 @@
-start session
-*gitpull- makes code up to date *bring*
-
