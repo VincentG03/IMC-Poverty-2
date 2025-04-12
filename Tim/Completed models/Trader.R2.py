@@ -4,134 +4,135 @@ import string
 import jsonpickle
 import numpy as np
 import math
+import json
 from datamodel import Listing, Observation, Order, OrderDepth, ProsperityEncoder, Symbol, Trade, TradingState
-# class Logger:
-#     def __init__(self) -> None:
-#         self.logs = ""
-#         self.max_log_length = 3750
+class Logger:
+    def __init__(self) -> None:
+        self.logs = ""
+        self.max_log_length = 3750
 
-#     def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
-#         self.logs += sep.join(map(str, objects)) + end
+    def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
+        self.logs += sep.join(map(str, objects)) + end
 
-#     def flush(self, state: TradingState, orders: dict[Symbol, list[Order]], conversions: int, trader_data: str) -> None:
-#         base_length = len(
-#             self.to_json(
-#                 [
-#                     self.compress_state(state, ""),
-#                     self.compress_orders(orders),
-#                     conversions,
-#                     "",
-#                     "",
-#                 ]
-#             )
-#         )
+    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]], conversions: int, trader_data: str) -> None:
+        base_length = len(
+            self.to_json(
+                [
+                    self.compress_state(state, ""),
+                    self.compress_orders(orders),
+                    conversions,
+                    "",
+                    "",
+                ]
+            )
+        )
 
-#         # We truncate state.traderData, trader_data, and self.logs to the same max. length to fit the log limit
-#         max_item_length = (self.max_log_length - base_length) // 3
+        # We truncate state.traderData, trader_data, and self.logs to the same max. length to fit the log limit
+        max_item_length = (self.max_log_length - base_length) // 3
 
-#         logger.print(
-#             self.to_json(
-#                 [
-#                     self.compress_state(state, self.truncate(state.traderData, max_item_length)),
-#                     self.compress_orders(orders),
-#                     conversions,
-#                     self.truncate(trader_data, max_item_length),
-#                     self.truncate(self.logs, max_item_length),
-#                 ]
-#             )
-#         )
+        print(
+            self.to_json(
+                [
+                    self.compress_state(state, self.truncate(state.traderData, max_item_length)),
+                    self.compress_orders(orders),
+                    conversions,
+                    self.truncate(trader_data, max_item_length),
+                    self.truncate(self.logs, max_item_length),
+                ]
+            )
+        )
 
-#         self.logs = ""
+        self.logs = ""
 
-#     def compress_state(self, state: TradingState, trader_data: str) -> list[Any]:
-#         return [
-#             state.timestamp,
-#             trader_data,
-#             self.compress_listings(state.listings),
-#             self.compress_order_depths(state.order_depths),
-#             self.compress_trades(state.own_trades),
-#             self.compress_trades(state.market_trades),
-#             state.position,
-#             self.compress_observations(state.observations),
-#         ]
+    def compress_state(self, state: TradingState, trader_data: str) -> list[Any]:
+        return [
+            state.timestamp,
+            trader_data,
+            self.compress_listings(state.listings),
+            self.compress_order_depths(state.order_depths),
+            self.compress_trades(state.own_trades),
+            self.compress_trades(state.market_trades),
+            state.position,
+            self.compress_observations(state.observations),
+        ]
 
-#     def compress_listings(self, listings: dict[Symbol, Listing]) -> list[list[Any]]:
-#         compressed = []
-#         for listing in listings.values():
-#             compressed.append([listing.symbol, listing.product, listing.denomination])
+    def compress_listings(self, listings: dict[Symbol, Listing]) -> list[list[Any]]:
+        compressed = []
+        for listing in listings.values():
+            compressed.append([listing.symbol, listing.product, listing.denomination])
 
-#         return compressed
+        return compressed
 
-#     def compress_order_depths(self, order_depths: dict[Symbol, OrderDepth]) -> dict[Symbol, list[Any]]:
-#         compressed = {}
-#         for symbol, order_depth in order_depths.items():
-#             compressed[symbol] = [order_depth.buy_orders, order_depth.sell_orders]
+    def compress_order_depths(self, order_depths: dict[Symbol, OrderDepth]) -> dict[Symbol, list[Any]]:
+        compressed = {}
+        for symbol, order_depth in order_depths.items():
+            compressed[symbol] = [order_depth.buy_orders, order_depth.sell_orders]
 
-#         return compressed
+        return compressed
 
-#     def compress_trades(self, trades: dict[Symbol, list[Trade]]) -> list[list[Any]]:
-#         compressed = []
-#         for arr in trades.values():
-#             for trade in arr:
-#                 compressed.append(
-#                     [
-#                         trade.symbol,
-#                         trade.price,
-#                         trade.quantity,
-#                         trade.buyer,
-#                         trade.seller,
-#                         trade.timestamp,
-#                     ]
-#                 )
+    def compress_trades(self, trades: dict[Symbol, list[Trade]]) -> list[list[Any]]:
+        compressed = []
+        for arr in trades.values():
+            for trade in arr:
+                compressed.append(
+                    [
+                        trade.symbol,
+                        trade.price,
+                        trade.quantity,
+                        trade.buyer,
+                        trade.seller,
+                        trade.timestamp,
+                    ]
+                )
 
-#         return compressed
+        return compressed
 
-#     def compress_observations(self, observations: Observation) -> list[Any]:
-#         conversion_observations = {}
-#         for product, observation in observations.conversionObservations.items():
-#             conversion_observations[product] = [
-#                 observation.bidPrice,
-#                 observation.askPrice,
-#                 observation.transportFees,
-#                 observation.exportTariff,
-#                 observation.importTariff,
-#                 observation.sugarPrice,
-#                 observation.sunlightIndex,
-#             ]
+    def compress_observations(self, observations: Observation) -> list[Any]:
+        conversion_observations = {}
+        for product, observation in observations.conversionObservations.items():
+            conversion_observations[product] = [
+                observation.bidPrice,
+                observation.askPrice,
+                observation.transportFees,
+                observation.exportTariff,
+                observation.importTariff,
+                observation.sugarPrice,
+                observation.sunlightIndex,
+            ]
 
-#         return [observations.plainValueObservations, conversion_observations]
+        return [observations.plainValueObservations, conversion_observations]
 
-#     def compress_orders(self, orders: dict[Symbol, list[Order]]) -> list[list[Any]]:
-#         compressed = []
-#         for arr in orders.values():
-#             for order in arr:
-#                 compressed.append([order.symbol, order.price, order.quantity])
+    def compress_orders(self, orders: dict[Symbol, list[Order]]) -> list[list[Any]]:
+        compressed = []
+        for arr in orders.values():
+            for order in arr:
+                compressed.append([order.symbol, order.price, order.quantity])
 
-#         return compressed
+        return compressed
 
-#     def to_json(self, value: Any) -> str:
-#         return json.dumps(value, cls=ProsperityEncoder, separators=(",", ":"))
+    def to_json(self, value: Any) -> str:
+        return json.dumps(value, cls=ProsperityEncoder, separators=(",", ":"))
 
-#     def truncate(self, value: str, max_length: int) -> str:
-#         if len(value) <= max_length:
-#             return value
+    def truncate(self, value: str, max_length: int) -> str:
+        if len(value) <= max_length:
+            return value
 
-#         return value[: max_length - 3] + "..."
-
-
-# logger = Logger()
+        return value[: max_length - 3] + "..."
 
 
-# class Trader:
-#     def run(self, state: TradingState) -> tuple[dict[Symbol, list[Order]], int, str]:
-#         result = {}
-#         conversions = 0
-#         trader_data = ""
+logger = Logger()
 
-#         # TODO: Add logic
 
-#         logger.flush(state, result, conversions, trader_data)
-#         return result, conversions, trader_data
+class Trader:
+    def run(self, state: TradingState) -> tuple[dict[Symbol, list[Order]], int, str]:
+        result = {}
+        conversions = 0
+        trader_data = ""
+
+        # TODO: Add logic
+
+        logger.flush(state, result, conversions, trader_data)
+        return result, conversions, trader_data
     
 class Product:
     RAINFOREST_RESIN = "RAINFOREST_RESIN" #RESIN, FROM A 
@@ -153,11 +154,11 @@ PARAMS = {
         "volume_limit": 0,
     },
     Product.KELP: {
-        "take_width": 2,
+        "take_width": 2.5,
         "clear_width": 1,
         "prevent_adverse": True,
         "adverse_volume": 15,
-        "reversion_beta": 0.9975,
+        "reversion_beta": 0.0873,#0.9975,
         "kelp_min_edge": 2,
     },
     # Product.ORCHIDS: {
@@ -165,18 +166,18 @@ PARAMS = {
     #     "make_probability": 0.800,
     # },
     Product.SPREAD: {
-        "default_spread_mean": 379.50439988484239,
-        "default_spread_std": 76.07966,
-        "spread_std_window": 45,
-        "zscore_threshold": 7,
+        "default_spread_mean": 29.95432567, #379.50439988484239,
+        "default_spread_std": 77.37587719, #76.07966,
+        "spread_std_window": 9.19,#45,
+        "zscore_threshold": 1,#7,
         "target_position": 58,
     },
 }
 
 BASKET_WEIGHTS = {
-    Product.CROISSANT: 8.42, #This was 4
-    Product.JAM: 3.1, #This was 6
-    Product.DEJEMBES: -0.51, #This was 1
+    Product.CROISSANT: 6,#8.42, #This was 4
+    Product.JAM: 3,#3.1, #This was 6
+    Product.DEJEMBES: 1,#-0.51, #This was 1
 }
 
 
@@ -1073,5 +1074,6 @@ class Trader:
 
         traderData = jsonpickle.encode(traderObject)
 
-        
+        conversions = 1
+        logger.flush(state,result,conversions,traderData)
         return result, conversions, traderData
