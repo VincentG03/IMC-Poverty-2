@@ -368,15 +368,15 @@ class Trader:
         result = {}
 
         rainforest_resin_fair_value = 10000  # Participant should calculate this value
-        rainforest_resin_width = 2
+        rainforest_resin_width = 13.5#2
         rainforest_resin_position_limit = 50
 
-        kelp_make_width = 3.5
+        kelp_make_width = 2.75#3.5
         kelp_take_width = 1
         kelp_position_limit = 50
         kelp_timemspan = 10
         
-        squid_ink_make_width = 3.5
+        squid_ink_make_width = 2.65#3.5
         squid_ink_take_width = 1
         squid_ink_position_limit = 50
         squid_ink_timemspan = 10
