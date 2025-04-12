@@ -171,7 +171,7 @@ PARAMS = {
         "default_spread_std": 85.11945081,#76.07966,
         "spread_std_window": 10,
         "zscore_threshold": 2,
-        "target_position": 58,
+        "target_position": 60,
     },
 }
 
@@ -188,6 +188,13 @@ class Trader:
             params = PARAMS
         self.params = params
 
+        self.kelp_prices = []
+        self.kelp_vwap = []
+        self.kelp_mmmid = []
+        self.squid_ink_prices = []
+        self.squid_ink_vwap = []
+        self.squid_ink_mmmid = []
+
         self.LIMIT = {
             Product.RAINFOREST_RESIN: 50,
             Product.KELP: 50,
@@ -196,7 +203,7 @@ class Trader:
             Product.CROISSANTS: 250, #CROISSANTSS
             Product.JAMS: 350, #JAMS
             Product.DJEMBES: 60, #DJEMBES 
-            
+            Product.SQUID_INK: 50
         }
 
     # Returns buy_order_volume, sell_order_volume
@@ -930,6 +937,173 @@ class Trader:
 
         spread_data["prev_zscore"] = zscore
         return None
+    
+
+
+
+
+
+
+
+
+
+
+    def rainforest_resin_orders(self, order_depth: OrderDepth, fair_value: int, width: int, position: int, position_limit: int) -> List[Order]:
+        orders: List[Order] = []
+
+        buy_order_volume = 0
+        sell_order_volume = 0
+        # mm_ask = min([price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 20])
+        # mm_bid = max([price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 20])
+        
+        baaf = min([price for price in order_depth.sell_orders.keys() if price > fair_value + 1])
+        bbbf = max([price for price in order_depth.buy_orders.keys() if price < fair_value - 1])
+        
+        # Take Orders
+        buy_order_volume, sell_order_volume = self.take_best_orders(Product.RAINFOREST_RESIN, fair_value, 0.5, orders, order_depth, position, buy_order_volume, sell_order_volume)
+        # Clear Position Orders
+        buy_order_volume, sell_order_volume = self.clear_position_order(Product.RAINFOREST_RESIN, fair_value, 1, orders, order_depth, position, buy_order_volume, sell_order_volume)
+        # Market Make
+        buy_order_volume, sell_order_volume = self.market_make(Product.RAINFOREST_RESIN, orders, bbbf + 1, baaf - 1, position, buy_order_volume, sell_order_volume)
+
+        return orders
+    
+
+    def kelp_orders(self, order_depth: OrderDepth, timespan:int, width: float, kelp_take_width: float, position: int, position_limit: int) -> List[Order]:
+        orders: List[Order] = []
+
+        buy_order_volume = 0
+        sell_order_volume = 0
+
+        if len(order_depth.sell_orders) != 0 and len(order_depth.buy_orders) != 0:    
+            
+            # Calculate Fair
+            best_ask = min(order_depth.sell_orders.keys())
+            best_bid = max(order_depth.buy_orders.keys())
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
+            mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
+            
+            mmmid_price = (mm_ask + mm_bid) / 2    
+            self.kelp_prices.append(mmmid_price)
+
+            volume = -1 * order_depth.sell_orders[best_ask] + order_depth.buy_orders[best_bid]
+            vwap = (best_bid * (-1) * order_depth.sell_orders[best_ask] + best_ask * order_depth.buy_orders[best_bid]) / volume
+            self.kelp_vwap.append({"vol": volume, "vwap": vwap})
+            # self.KELP_mmmid.append(mmmid_price)
+            
+            if len(self.kelp_vwap) > timespan:
+                self.kelp_vwap.pop(0)
+            
+            if len(self.kelp_prices) > timespan:
+                self.kelp_prices.pop(0)
+        
+            # fair_value = sum([x["vwap"]*x['vol'] for x in self.kelp_vwap]) / sum([x['vol'] for x in self.kelp_vwap])=
+            # fair_value = sum(self.kelp_prices) / len(self.kelp_prices)
+            fair_value = mmmid_price
+
+            # only taking best bid/ask
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.KELP, fair_value, kelp_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            
+            # Clear Position Orders
+            buy_order_volume, sell_order_volume = self.clear_position_order(Product.KELP, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
+            
+            aaf = [price for price in order_depth.sell_orders.keys() if price > fair_value + 1]
+            bbf = [price for price in order_depth.buy_orders.keys() if price < fair_value - 1]
+            baaf = min(aaf) if len(aaf) > 0 else fair_value + 2
+            bbbf = max(bbf) if len(bbf) > 0 else fair_value - 2
+
+            # Market Make
+            buy_order_volume, sell_order_volume = self.market_make(Product.KELP, orders, bbbf + 1, baaf - 1, position, buy_order_volume, sell_order_volume)
+
+        return orders
+    
+    def squid_ink_orders(self, order_depth: OrderDepth, timespan:int, width: float, kelp_take_width: float, position: int, position_limit: int) -> List[Order]:
+        orders: List[Order] = []
+
+        buy_order_volume = 0
+        sell_order_volume = 0
+
+        if len(order_depth.sell_orders) != 0 and len(order_depth.buy_orders) != 0:    
+            
+            # Calculate Fair
+            best_ask = min(order_depth.sell_orders.keys())
+            best_bid = max(order_depth.buy_orders.keys())
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
+            mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
+            
+            mmmid_price = (mm_ask + mm_bid) / 2    
+            self.squid_ink_prices.append(mmmid_price)
+
+            volume = -1 * order_depth.sell_orders[best_ask] + order_depth.buy_orders[best_bid]
+            vwap = (best_bid * (-1) * order_depth.sell_orders[best_ask] + best_ask * order_depth.buy_orders[best_bid]) / volume
+            self.squid_ink_vwap.append({"vol": volume, "vwap": vwap})
+            # self.squid_ink_mmmid.append(mmmid_price)
+            
+            if len(self.squid_ink_vwap) > timespan:
+                self.squid_ink_vwap.pop(0)
+            
+            if len(self.squid_ink_prices) > timespan:
+                self.squid_ink_prices.pop(0)
+        
+            # fair_value = sum([x["vwap"]*x['vol'] for x in self.squid_ink_vwap]) / sum([x['vol'] for x in self.squid_ink_vwap])=
+            # fair_value = sum(self.squid_ink_prices) / len(self.squid_ink_prices)
+            fair_value = mmmid_price
+
+            # only taking best bid/ask
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.SQUID_INK, fair_value, kelp_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            
+            # Clear Position Orders
+            buy_order_volume, sell_order_volume = self.clear_position_order(Product.SQUID_INK, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
+            
+            aaf = [price for price in order_depth.sell_orders.keys() if price > fair_value + 1]
+            bbf = [price for price in order_depth.buy_orders.keys() if price < fair_value - 1]
+            baaf = min(aaf) if len(aaf) > 0 else fair_value + 2
+            bbbf = max(bbf) if len(bbf) > 0 else fair_value - 2
+
+            # Market Make
+            buy_order_volume, sell_order_volume = self.market_make(Product.SQUID_INK, orders, bbbf + 1, baaf - 1, position, buy_order_volume, sell_order_volume)
+
+        return orders
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def run(self, state: TradingState):
         traderObject = {}
@@ -939,86 +1113,91 @@ class Trader:
         result = {}
         conversions = 0
 
-        if Product.RAINFOREST_RESIN in self.params and Product.RAINFOREST_RESIN in state.order_depths:
-            rainforest_resin_position = (
-                state.position[Product.RAINFOREST_RESIN]
-                if Product.RAINFOREST_RESIN in state.position
-                else 0
-            )
-            rainforest_resin_take_orders, buy_order_volume, sell_order_volume = (
-                self.take_orders(
-                    Product.RAINFOREST_RESIN,
-                    state.order_depths[Product.RAINFOREST_RESIN],
-                    self.params[Product.RAINFOREST_RESIN]["fair_value"],
-                    self.params[Product.RAINFOREST_RESIN]["take_width"],
-                    rainforest_resin_position,
-                )
-            )
-            rainforest_resin_clear_orders, buy_order_volume, sell_order_volume = (
-                self.clear_orders(
-                    Product.RAINFOREST_RESIN,
-                    state.order_depths[Product.RAINFOREST_RESIN],
-                    self.params[Product.RAINFOREST_RESIN]["fair_value"],
-                    self.params[Product.RAINFOREST_RESIN]["clear_width"],
-                    rainforest_resin_position,
-                    buy_order_volume,
-                    sell_order_volume,
-                )
-            )
-            rainforest_resin_make_orders, _, _ = self.make_rainforest_resin_orders(
-                state.order_depths[Product.RAINFOREST_RESIN],
-                self.params[Product.RAINFOREST_RESIN]["fair_value"],
-                rainforest_resin_position,
-                buy_order_volume,
-                sell_order_volume,
-                self.params[Product.RAINFOREST_RESIN]["volume_limit"],
-            )
-            result[Product.RAINFOREST_RESIN] = (
-                rainforest_resin_take_orders + rainforest_resin_clear_orders + rainforest_resin_make_orders
-            )
+        rainforest_resin_position_limit = 50
 
-        if Product.KELP in self.params and Product.KELP in state.order_depths:
-            kelp_position = (
-                state.position[Product.KELP]
-                if Product.KELP in state.position
-                else 0
-            )
-            kelp_fair_value = self.kelp_fair_value(
-                state.order_depths[Product.KELP], traderObject
-            )
-            kelp_take_orders, buy_order_volume, sell_order_volume = (
-                self.take_orders(
-                    Product.KELP,
-                    state.order_depths[Product.KELP],
-                    kelp_fair_value,
-                    self.params[Product.KELP]["take_width"],
-                    kelp_position,
-                    self.params[Product.KELP]["prevent_adverse"],
-                    self.params[Product.KELP]["adverse_volume"],
-                )
-            )
-            kelp_clear_orders, buy_order_volume, sell_order_volume = (
-                self.clear_orders(
-                    Product.KELP,
-                    state.order_depths[Product.KELP],
-                    kelp_fair_value,
-                    self.params[Product.KELP]["clear_width"],
-                    kelp_position,
-                    buy_order_volume,
-                    sell_order_volume,
-                )
-            )
-            kelp_make_orders, _, _ = self.make_kelp_orders(
-                state.order_depths[Product.KELP],
-                kelp_fair_value,
-                self.params[Product.KELP]["kelp_min_edge"],
-                kelp_position,
-                buy_order_volume,
-                sell_order_volume,
-            )
-            result[Product.KELP] = (
-                kelp_take_orders + kelp_clear_orders + kelp_make_orders
-            )
+        kelp_make_width = 2.75#3.5
+        kelp_take_width = 1
+        kelp_position_limit = 50
+        kelp_timemspan = 10
+        
+        squid_ink_make_width = 2.65#3.5
+        squid_ink_take_width = 1
+        squid_ink_position_limit = 50
+        squid_ink_timemspan = 10
+
+
+        if Product.RAINFOREST_RESIN in state.order_depths:      # additional and satement to be in self.params is missing ehre
+            rainforest_resin_position = state.position[Product.RAINFOREST_RESIN] if Product.RAINFOREST_RESIN in state.position else 0
+            rainforest_resin_orders = self.rainforest_resin_orders(state.order_depths[Product.RAINFOREST_RESIN], 
+                                                                   self.params[Product.RAINFOREST_RESIN]["fair_value"], 
+                                                                   self.params[Product.RAINFOREST_RESIN]["take_width"], 
+                                                                   rainforest_resin_position, 
+                                                                   rainforest_resin_position_limit)
+            result[Product.RAINFOREST_RESIN] = rainforest_resin_orders
+
+        if Product.KELP in state.order_depths:
+            kelp_position = state.position[Product.KELP] if Product.KELP in state.position else 0
+            kelp_orders = self.kelp_orders(state.order_depths[Product.KELP], 
+                                           kelp_timemspan, 
+                                           kelp_make_width, 
+                                           kelp_take_width, 
+                                           kelp_position, 
+                                           kelp_position_limit)
+            result[Product.KELP] = kelp_orders
+
+        if Product.SQUID_INK in state.order_depths:
+            squid_ink_position = state.position[Product.SQUID_INK] if Product.SQUID_INK in state.position else 0
+            squid_ink_orders = self.squid_ink_orders(state.order_depths[Product.SQUID_INK], squid_ink_timemspan, 
+                                                     squid_ink_make_width, 
+                                                     squid_ink_take_width, 
+                                                     squid_ink_position, 
+                                                     squid_ink_position_limit)
+            result[Product.SQUID_INK] = squid_ink_orders
+
+
+
+        # if Product.KELP in self.params and Product.KELP in state.order_depths:
+        #     kelp_position = (
+        #         state.position[Product.KELP]
+        #         if Product.KELP in state.position
+        #         else 0
+        #     )
+        #     kelp_fair_value = self.kelp_fair_value(
+        #         state.order_depths[Product.KELP], traderObject
+        #     )
+        #     kelp_take_orders, buy_order_volume, sell_order_volume = (
+        #         self.take_orders(
+        #             Product.KELP,
+        #             state.order_depths[Product.KELP],
+        #             kelp_fair_value,
+        #             self.params[Product.KELP]["take_width"],
+        #             kelp_position,
+        #             self.params[Product.KELP]["prevent_adverse"],
+        #             self.params[Product.KELP]["adverse_volume"],
+        #         )
+        #     )
+        #     kelp_clear_orders, buy_order_volume, sell_order_volume = (
+        #         self.clear_orders(
+        #             Product.KELP,
+        #             state.order_depths[Product.KELP],
+        #             kelp_fair_value,
+        #             self.params[Product.KELP]["clear_width"],
+        #             kelp_position,
+        #             buy_order_volume,
+        #             sell_order_volume,
+        #         )
+        #     )
+        #     kelp_make_orders, _, _ = self.make_kelp_orders(
+        #         state.order_depths[Product.KELP],
+        #         kelp_fair_value,
+        #         self.params[Product.KELP]["kelp_min_edge"],
+        #         kelp_position,
+        #         buy_order_volume,
+        #         sell_order_volume,
+        #     )
+        #     result[Product.KELP] = (
+        #         kelp_take_orders + kelp_clear_orders + kelp_make_orders
+        #     )
 
         # if Product.ORCHIDS in self.params and Product.ORCHIDS in state.order_depths:
         #     orchids_position = (
@@ -1079,3 +1258,8 @@ class Trader:
         conversions = 1
         logger.flush(state,result,conversions,traderData)
         return result, conversions, traderData
+    
+
+
+
+
