@@ -187,13 +187,15 @@ class Trader:
                 if best_ask_amount <= adverse_volume and best_ask <= fair_value - take_width:
                     quantity = min(best_ask_amount, position_limit - position) # max amt to buy 
                     if quantity > 0:
-                        orders.append(Order(product, best_ask, quantity)) 
+                        orders.append(Order(product, int(best_ask), quantity))
+
                         buy_order_volume += quantity
             else:
                 if best_ask <= fair_value - take_width:
                     quantity = min(best_ask_amount, position_limit - position) # max amt to buy 
                     if quantity > 0:
-                        orders.append(Order(product, best_ask, quantity)) 
+                        orders.append(Order(product, int(best_ask), quantity))
+ 
                         buy_order_volume += quantity
 
         if len(order_depth.buy_orders) != 0:
@@ -203,14 +205,16 @@ class Trader:
                 if (best_bid >= fair_value + take_width) and (best_bid_amount <= adverse_volume):
                     quantity = min(best_bid_amount, position_limit + position) # should be the max we can sell 
                     if quantity > 0:
-                        orders.append(Order(product, best_bid, -1 * quantity))
+                        orders.append(Order(product, int(best_bid), -1 * quantity))
+
                         sell_order_volume += quantity
 
             else:
                 if best_bid >= fair_value + take_width:
                     quantity = min(best_bid_amount, position_limit + position) # should be the max we can sell 
                     if quantity > 0:
-                        orders.append(Order(product, best_bid, -1 * quantity))
+                        orders.append(Order(product, int(best_bid), -1 * quantity))
+
                         sell_order_volume += quantity
 
         return buy_order_volume, sell_order_volume
@@ -218,11 +222,11 @@ class Trader:
     def market_make(self, product: str, orders: List[Order], bid: int, ask: int, position: int, buy_order_volume: int, sell_order_volume: int) -> Tuple[int, int]:
         buy_quantity = self.LIMIT[product] - (position + buy_order_volume)
         if buy_quantity > 0:
-            orders.append(Order(product, bid, buy_quantity))  # Buy order
+            orders.append(Order(product, int(bid), buy_quantity))  # Buy order
 
         sell_quantity = self.LIMIT[product] + (position - sell_order_volume)
         if sell_quantity > 0:
-            orders.append(Order(product, ask, -sell_quantity))  # Sell order
+            orders.append(Order(product, int(ask), -sell_quantity))  # Sell order
     
         
         return buy_order_volume, sell_order_volume
@@ -231,8 +235,8 @@ class Trader:
         
         position_after_take = position + buy_order_volume - sell_order_volume
         fair = round(fair_value)
-        fair_for_bid = math.floor(fair_value)
-        fair_for_ask = math.ceil(fair_value)
+        fair_for_bid = int(math.floor(fair_value))
+        fair_for_ask = int(math.ceil(fair_value))
         # fair_for_ask = fair_for_bid = fair
 
         buy_quantity = self.LIMIT[product] - (position + buy_order_volume)
@@ -243,7 +247,7 @@ class Trader:
                 clear_quantity = min(order_depth.buy_orders[fair_for_ask], position_after_take)
                 # clear_quantity = position_after_take
                 sent_quantity = min(sell_quantity, clear_quantity)
-                orders.append(Order(product, fair_for_ask, -abs(sent_quantity)))
+                orders.append(Order(product, int(fair_for_ask), -abs(sent_quantity)))
                 sell_order_volume += abs(sent_quantity)
 
         if position_after_take < 0:
@@ -251,7 +255,7 @@ class Trader:
                 clear_quantity = min(abs(order_depth.sell_orders[fair_for_bid]), abs(position_after_take))
                 # clear_quantity = abs(position_after_take)
                 sent_quantity = min(buy_quantity, clear_quantity)
-                orders.append(Order(product, fair_for_bid, abs(sent_quantity)))
+                orders.append(Order(product, int(fair_for_bid), abs(sent_quantity)))
                 buy_order_volume += abs(sent_quantity)
     
         return buy_order_volume, sell_order_volume
@@ -299,7 +303,7 @@ class Trader:
         return orders
     
 
-    def kelp_orders(self, order_depth: OrderDepth, timespan:int, width: float, kelp_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
+    def kelp_orders(self, order_depth: OrderDepth, timespan:int, width: float, kelp_take_width: float, position: int, position_limit: int, adverse_vale, filter_thresh) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -310,8 +314,8 @@ class Trader:
             # Calculate Fair
             best_ask = min(order_depth.sell_orders.keys())
             best_bid = max(order_depth.buy_orders.keys())
-            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
-            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= filter_thresh]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= filter_thresh]
             mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
             mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
             
@@ -349,7 +353,7 @@ class Trader:
 
         return orders
     
-    def squid_ink_orders(self, order_depth: OrderDepth, timespan:int, width: float, squid_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
+    def squid_ink_orders(self, order_depth: OrderDepth, timespan:int, width: float, squid_take_width: float, position: int, position_limit: int, adverse_vale, filter_thresh) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -360,8 +364,8 @@ class Trader:
             # Calculate Fair
             best_ask = min(order_depth.sell_orders.keys())
             best_bid = max(order_depth.buy_orders.keys())
-            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
-            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= filter_thresh]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= filter_thresh]
             mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
             mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
             
@@ -400,7 +404,7 @@ class Trader:
         return orders
 
 
-    def croissants_orders(self, order_depth: OrderDepth, timespan:int, width: float, croissants_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
+    def croissants_orders(self, order_depth: OrderDepth, timespan:int, width: float, croissants_take_width: float, position: int, position_limit: int, adverse_vale, filter_thresh) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -411,8 +415,8 @@ class Trader:
             # Calculate Fair
             best_ask = min(order_depth.sell_orders.keys())
             best_bid = max(order_depth.buy_orders.keys())
-            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
-            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= filter_thresh]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= filter_thresh]
             mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
             mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
             
@@ -424,10 +428,10 @@ class Trader:
             self.croissants_vwap.append({"vol": volume, "vwap": vwap})
             # self.squid_ink_mmmid.append(mmmid_price)
             
-            if len(self.squid_ink_vwap) > timespan:
+            if len(self.croissants_vwap) > timespan:
                 self.croissants_vwap.pop(0)
             
-            if len(self.squid_ink_prices) > timespan:
+            if len(self.croissants_prices) > timespan:
                 self.croissants_prices.pop(0)
         
             # fair_value = sum([x["vwap"]*x['vol'] for x in self.squid_ink_vwap]) / sum([x['vol'] for x in self.squid_ink_vwap])=
@@ -451,7 +455,7 @@ class Trader:
         return orders
     
     
-    def jams_orders(self, order_depth: OrderDepth, timespan:int, width: float, jams_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
+    def jams_orders(self, order_depth: OrderDepth, timespan:int, width: float, jams_take_width: float, position: int, position_limit: int, adverse_vale, filter_thresh) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -462,8 +466,8 @@ class Trader:
             # Calculate Fair
             best_ask = min(order_depth.sell_orders.keys())
             best_bid = max(order_depth.buy_orders.keys())
-            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
-            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= filter_thresh]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= filter_thresh]
             mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
             mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
             
@@ -475,10 +479,10 @@ class Trader:
             self.jams_vwap.append({"vol": volume, "vwap": vwap})
             # self.squid_ink_mmmid.append(mmmid_price)
             
-            if len(self.squid_ink_vwap) > timespan:
+            if len(self.jams_vwap) > timespan:
                 self.jams_vwap.pop(0)
             
-            if len(self.squid_ink_prices) > timespan:
+            if len(self.jams_prices) > timespan:
                 self.jams_prices.pop(0)
         
             # fair_value = sum([x["vwap"]*x['vol'] for x in self.squid_ink_vwap]) / sum([x['vol'] for x in self.squid_ink_vwap])=
@@ -502,7 +506,7 @@ class Trader:
         return orders
     
     
-    def djembes_orders(self, order_depth: OrderDepth, timespan:int, width: float, djembes_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
+    def djembes_orders(self, order_depth: OrderDepth, timespan:int, width: float, djembes_take_width: float, position: int, position_limit: int, adverse_vale, filter_thresh) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -513,8 +517,8 @@ class Trader:
             # Calculate Fair
             best_ask = min(order_depth.sell_orders.keys())
             best_bid = max(order_depth.buy_orders.keys())
-            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
-            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= filter_thresh]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= filter_thresh]
             mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
             mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
             
@@ -526,10 +530,10 @@ class Trader:
             self.djembes_vwap.append({"vol": volume, "vwap": vwap})
             # self.squid_ink_mmmid.append(mmmid_price)
             
-            if len(self.squid_ink_vwap) > timespan:
+            if len(self.djembes_vwap) > timespan:
                 self.djembes_vwap.pop(0)
             
-            if len(self.squid_ink_prices) > timespan:
+            if len(self.djembes_prices) > timespan:
                 self.djembes_prices.pop(0)
         
             # fair_value = sum([x["vwap"]*x['vol'] for x in self.squid_ink_vwap]) / sum([x['vol'] for x in self.squid_ink_vwap])=
@@ -552,7 +556,7 @@ class Trader:
 
         return orders
     
-    def picnic_basket1_orders(self, order_depth: OrderDepth, timespan:int, width: float, picnic_basket1_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
+    def picnic_basket1_orders(self, order_depth: OrderDepth, timespan:int, width: float, picnic_basket1_take_width: float, position: int, position_limit: int, adverse_vale, filter_thresh) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -563,8 +567,8 @@ class Trader:
             # Calculate Fair
             best_ask = min(order_depth.sell_orders.keys())
             best_bid = max(order_depth.buy_orders.keys())
-            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
-            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= filter_thresh]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= filter_thresh]
             mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
             mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
             
@@ -576,10 +580,10 @@ class Trader:
             self.picnic_basket1_vwap.append({"vol": volume, "vwap": vwap})
             # self.squid_ink_mmmid.append(mmmid_price)
             
-            if len(self.squid_ink_vwap) > timespan:
+            if len(self.picnic_basket1_vwap) > timespan:
                 self.picnic_basket1_vwap.pop(0)
             
-            if len(self.squid_ink_prices) > timespan:
+            if len(self.picnic_basket1_prices) > timespan:
                 self.picnic_basket1_prices.pop(0)
         
             # fair_value = sum([x["vwap"]*x['vol'] for x in self.squid_ink_vwap]) / sum([x['vol'] for x in self.squid_ink_vwap])=
@@ -603,7 +607,7 @@ class Trader:
         return orders
     
     
-    def picnic_basket2_orders(self, order_depth: OrderDepth, timespan:int, width: float, picnic_basket2_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
+    def picnic_basket2_orders(self, order_depth: OrderDepth, timespan:int, width: float, picnic_basket2_take_width: float, position: int, position_limit: int, adverse_vale, filter_thresh) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -614,8 +618,8 @@ class Trader:
             # Calculate Fair
             best_ask = min(order_depth.sell_orders.keys())
             best_bid = max(order_depth.buy_orders.keys())
-            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= 15]
-            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= 15]
+            filtered_ask = [price for price in order_depth.sell_orders.keys() if abs(order_depth.sell_orders[price]) >= filter_thresh]
+            filtered_bid = [price for price in order_depth.buy_orders.keys() if abs(order_depth.buy_orders[price]) >= filter_thresh]
             mm_ask = min(filtered_ask) if len(filtered_ask) > 0 else best_ask
             mm_bid = max(filtered_bid) if len(filtered_bid) > 0 else best_bid
             
@@ -627,10 +631,10 @@ class Trader:
             self.picnic_basket2_vwap.append({"vol": volume, "vwap": vwap})
             # self.squid_ink_mmmid.append(mmmid_price)
             
-            if len(self.squid_ink_vwap) > timespan:
+            if len(self.picnic_basket2_vwap) > timespan:
                 self.picnic_basket2_vwap.pop(0)
             
-            if len(self.squid_ink_prices) > timespan:
+            if len(self.picnic_basket2_prices) > timespan:
                 self.picnic_basket2_prices.pop(0)
         
             # fair_value = sum([x["vwap"]*x['vol'] for x in self.squid_ink_vwap]) / sum([x['vol'] for x in self.squid_ink_vwap])=
@@ -666,47 +670,69 @@ class Trader:
         rainforest_resin_width = 13.5
         rainforest_resin_position_limit = 50
 
+        djembes_make_width = 1.25
+        djembes_take_width = 0.5
+        djembes_position_limit = 60
+        djembes_timemspan = 10
+        # djembes_adverse = 128
+        djembes_adverse = 50
+        # djembes_filtered_threshold = 89
+        djembes_filtered_threshold = 15
+
         kelp_make_width = 2.75
         kelp_take_width = 1
         kelp_position_limit = 50
         kelp_timemspan = 10
-        kelp_adverse = 
+        # kelp_adverse = 54
+        kelp_adverse = 50
+        # kelp_filtered_threshold = 30
+        kelp_filtered_threshold = 15
         
         squid_ink_make_width = 2.65
         squid_ink_take_width = 1
         squid_ink_position_limit = 50
         squid_ink_timemspan = 10
-        squid_ink_adverse = 
+        # squid_ink_adverse = 54
+        squid_ink_adverse = 50
+        # squid_ink_filtered_threshold = 30
+        squid_ink_filtered_threshold = 15
         
         jams_make_width = 1.6
         jams_take_width = 0.65
         jams_position_limit = 350
         jams_timemspan = 10
-        jams_adverse = 
+        # jams_adverse = 470
+        jams_adverse = 50
+        # jams_filtered_threshold = 178
+        jams_filtered_threshold = 15
 
         croissants_make_width = 1.2
         croissants_take_width = 0.5
         croissants_position_limit = 250
         croissants_timemspan = 10
-        croissants_adverse = 
+        # croissants_adverse = 256
+        croissants_adverse = 50
+        # croissants_filtered_threshold = 179
+        croissants_filtered_threshold = 15
         
-        djembes_make_width = 1.25
-        djembes_take_width = 0.5
-        djembes_position_limit = 60
-        djembes_timemspan = 10
-        djembes_adverse = 
-
         picnic_basket1_make_width = 30
         picnic_basket1_take_width = 12
         picnic_basket1_position_limit = 60
         picnic_basket1_timemspan = 10
-        picnic_basket1_adverse = 
+        # picnic_basket1_adverse = 36
+        picnic_basket1_adverse = 50
+        # picnic_basket1_filtered_threshold = 16
+        picnic_basket1_filtered_threshold = 15
  
         picnic_basket2_make_width = 30
         picnic_basket2_take_width = 12
         picnic_basket2_position_limit = 100
         picnic_basket2_timemspan = 10
-        picnic_basket2_adverse = 
+        # picnic_basket2_adverse = 52
+        picnic_basket2_adverse = 50
+        # picnic_basket2_filtered_threshold = 21
+        picnic_basket2_filtered_threshold = 15
+
         
         # traderData = jsonpickle.decode(state.traderData)
         # print(state.traderData)
@@ -721,43 +747,39 @@ class Trader:
 
         if Product.KELP in state.order_depths:
             kelp_position = state.position[Product.KELP] if Product.KELP in state.position else 0
-            kelp_orders = self.kelp_orders(state.order_depths[Product.KELP], kelp_timemspan, kelp_make_width, kelp_take_width, kelp_position, kelp_position_limit, kelp_adverse)
+            kelp_orders = self.kelp_orders(state.order_depths[Product.KELP], kelp_timemspan, kelp_make_width, kelp_take_width, kelp_position, kelp_position_limit, kelp_adverse, kelp_filtered_threshold)
             result[Product.KELP] = kelp_orders
 
         if Product.SQUID_INK in state.order_depths:
             squid_ink_position = state.position[Product.SQUID_INK] if Product.SQUID_INK in state.position else 0
-            squid_ink_orders = self.squid_ink_orders(state.order_depths[Product.SQUID_INK], squid_ink_timemspan, squid_ink_make_width, squid_ink_take_width, squid_ink_position, squid_ink_position_limit, squid_ink_adverse)
+            squid_ink_orders = self.squid_ink_orders(state.order_depths[Product.SQUID_INK], squid_ink_timemspan, squid_ink_make_width, squid_ink_take_width, squid_ink_position, squid_ink_position_limit, squid_ink_adverse, squid_ink_filtered_threshold)
             result[Product.SQUID_INK] = squid_ink_orders
-        
-        # Picnic 1
+
         if Product.PICNIC_BASKET1 in state.order_depths:
             picnic_basket1_position = state.position[Product.PICNIC_BASKET1] if Product.PICNIC_BASKET1 in state.position else 0
-            picnic_basket1_orders = self.picnic_basket1_orders(state.order_depths[Product.PICNIC_BASKET1], picnic_basket1_timemspan, picnic_basket1_make_width, picnic_basket1_take_width, picnic_basket1_position, picnic_basket1_position_limit, picnic_basket1_adverse)
+            picnic_basket1_orders = self.picnic_basket1_orders(state.order_depths[Product.PICNIC_BASKET1], picnic_basket1_timemspan, picnic_basket1_make_width, picnic_basket1_take_width, picnic_basket1_position, picnic_basket1_position_limit, picnic_basket1_adverse, picnic_basket1_filtered_threshold)
             result[Product.PICNIC_BASKET1] = picnic_basket1_orders
-            
-        # Picnic 2
+
         if Product.PICNIC_BASKET2 in state.order_depths:
             picnic_basket2_position = state.position[Product.PICNIC_BASKET2] if Product.PICNIC_BASKET2 in state.position else 0
-            picnic_basket2_orders = self.picnic_basket2_orders(state.order_depths[Product.PICNIC_BASKET2], picnic_basket2_timemspan, picnic_basket2_make_width, picnic_basket2_take_width, picnic_basket2_position, picnic_basket2_position_limit, picnic_basket2_adverse)
+            picnic_basket2_orders = self.picnic_basket2_orders(state.order_depths[Product.PICNIC_BASKET2], picnic_basket2_timemspan, picnic_basket2_make_width, picnic_basket2_take_width, picnic_basket2_position, picnic_basket2_position_limit, picnic_basket2_adverse, picnic_basket2_filtered_threshold)
             result[Product.PICNIC_BASKET2] = picnic_basket2_orders
-            
-        # Jam
+
         if Product.JAMS in state.order_depths:
             jams_position = state.position[Product.JAMS] if Product.JAMS in state.position else 0
-            jams_orders = self.jams_orders(state.order_depths[Product.JAMS], jams_timemspan, jams_make_width, jams_take_width, jams_position, jams_position_limit, jams_adverse)
+            jams_orders = self.jams_orders(state.order_depths[Product.JAMS], jams_timemspan, jams_make_width, jams_take_width, jams_position, jams_position_limit, jams_adverse, jams_filtered_threshold)
             result[Product.JAMS] = jams_orders
-            
-        # Croissants
+
         if Product.CROISSANTS in state.order_depths:
             croissants_position = state.position[Product.CROISSANTS] if Product.CROISSANTS in state.position else 0
-            croissants_orders = self.croissants_orders(state.order_depths[Product.CROISSANTS], croissants_timemspan, croissants_make_width, croissants_take_width, croissants_position, croissants_position_limit, croissants_adverse)
+            croissants_orders = self.croissants_orders(state.order_depths[Product.CROISSANTS], croissants_timemspan, croissants_make_width, croissants_take_width, croissants_position, croissants_position_limit, croissants_adverse, croissants_filtered_threshold)
             result[Product.CROISSANTS] = croissants_orders
-            
-        # Djemebes
+
         if Product.DJEMBES in state.order_depths:
             djembes_position = state.position[Product.DJEMBES] if Product.DJEMBES in state.position else 0
-            djembes_orders = self.djembes_orders(state.order_depths[Product.DJEMBES], djembes_timemspan, djembes_make_width, djembes_take_width, djembes_position, djembes_position_limit, djembes_adverse)
+            djembes_orders = self.djembes_orders(state.order_depths[Product.DJEMBES], djembes_timemspan, djembes_make_width, djembes_take_width, djembes_position, djembes_position_limit, djembes_adverse, djembes_filtered_threshold)
             result[Product.DJEMBES] = djembes_orders
+
 
         
         traderData = jsonpickle.encode( { 
