@@ -166,10 +166,10 @@ PARAMS = {
         "kelp_min_edge": 2,
     },
     Product.SQUID_INK: {
-    "take_width": 1,
+    "take_width": 1, 
     "clear_width": 2,
     "make_width": 2.65,
-    "adverse_volume": 15,
+    #"adverse_volume": 5,#15
     "timespan": 10,
     },
     Product.CROISSANTS: {
