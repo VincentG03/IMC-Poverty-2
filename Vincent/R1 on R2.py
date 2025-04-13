@@ -738,7 +738,7 @@ class Trader:
         # Picnic 2
         if Product.PICNIC_BASKET2 in state.order_depths:
             picnic_basket2_position = state.position[Product.PICNIC_BASKET2] if Product.PICNIC_BASKET2 in state.position else 0
-            picnic_basket2_orders = self.picnic_basket2_orders(state.order_depths[Product.PICNIC_BASKET2], picnic_basket2_timemspan, picnic_basket2_make_width, picnic_basket2_take_width, picnic_basket2_position, picnic_basket2_position_limit, picnic_basket2_adversez)
+            picnic_basket2_orders = self.picnic_basket2_orders(state.order_depths[Product.PICNIC_BASKET2], picnic_basket2_timemspan, picnic_basket2_make_width, picnic_basket2_take_width, picnic_basket2_position, picnic_basket2_position_limit, picnic_basket2_adverse)
             result[Product.PICNIC_BASKET2] = picnic_basket2_orders
             
         # Jam
