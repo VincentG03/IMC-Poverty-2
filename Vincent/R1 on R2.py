@@ -299,7 +299,7 @@ class Trader:
         return orders
     
 
-    def kelp_orders(self, order_depth: OrderDepth, timespan:int, width: float, kelp_take_width: float, position: int, position_limit: int) -> List[Order]:
+    def kelp_orders(self, order_depth: OrderDepth, timespan:int, width: float, kelp_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -334,7 +334,7 @@ class Trader:
             fair_value = mmmid_price
 
             # only taking best bid/ask
-            buy_order_volume, sell_order_volume = self.take_best_orders(Product.KELP, fair_value, kelp_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.KELP, fair_value, kelp_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, adverse_vale)
             
             # Clear Position Orders
             buy_order_volume, sell_order_volume = self.clear_position_order(Product.KELP, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
@@ -349,7 +349,7 @@ class Trader:
 
         return orders
     
-    def squid_ink_orders(self, order_depth: OrderDepth, timespan:int, width: float, squid_take_width: float, position: int, position_limit: int) -> List[Order]:
+    def squid_ink_orders(self, order_depth: OrderDepth, timespan:int, width: float, squid_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -384,7 +384,7 @@ class Trader:
             fair_value = mmmid_price
 
             # only taking best bid/ask
-            buy_order_volume, sell_order_volume = self.take_best_orders(Product.SQUID_INK, fair_value, squid_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.SQUID_INK, fair_value, squid_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, adverse_vale)
             
             # Clear Position Orders
             buy_order_volume, sell_order_volume = self.clear_position_order(Product.SQUID_INK, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
@@ -400,7 +400,7 @@ class Trader:
         return orders
 
 
-    def croissants_orders(self, order_depth: OrderDepth, timespan:int, width: float, croissants_take_width: float, position: int, position_limit: int) -> List[Order]:
+    def croissants_orders(self, order_depth: OrderDepth, timespan:int, width: float, croissants_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -435,7 +435,7 @@ class Trader:
             fair_value = mmmid_price
 
             # only taking best bid/ask
-            buy_order_volume, sell_order_volume = self.take_best_orders(Product.CROISSANTS, fair_value, croissants_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.CROISSANTS, fair_value, croissants_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, adverse_vale)
             
             # Clear Position Orders
             buy_order_volume, sell_order_volume = self.clear_position_order(Product.CROISSANTS, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
@@ -451,7 +451,7 @@ class Trader:
         return orders
     
     
-    def jams_orders(self, order_depth: OrderDepth, timespan:int, width: float, jams_take_width: float, position: int, position_limit: int) -> List[Order]:
+    def jams_orders(self, order_depth: OrderDepth, timespan:int, width: float, jams_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -486,7 +486,7 @@ class Trader:
             fair_value = mmmid_price
 
             # only taking best bid/ask
-            buy_order_volume, sell_order_volume = self.take_best_orders(Product.JAMS, fair_value, jams_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.JAMS, fair_value, jams_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, adverse_vale)
             
             # Clear Position Orders
             buy_order_volume, sell_order_volume = self.clear_position_order(Product.JAMS, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
@@ -502,7 +502,7 @@ class Trader:
         return orders
     
     
-    def djembes_orders(self, order_depth: OrderDepth, timespan:int, width: float, djembes_take_width: float, position: int, position_limit: int) -> List[Order]:
+    def djembes_orders(self, order_depth: OrderDepth, timespan:int, width: float, djembes_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -537,7 +537,7 @@ class Trader:
             fair_value = mmmid_price
 
             # only taking best bid/ask
-            buy_order_volume, sell_order_volume = self.take_best_orders(Product.DJEMBES, fair_value, djembes_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.DJEMBES, fair_value, djembes_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, adverse_vale)
             
             # Clear Position Orders
             buy_order_volume, sell_order_volume = self.clear_position_order(Product.DJEMBES, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
@@ -552,7 +552,7 @@ class Trader:
 
         return orders
     
-    def picnic_basket1_orders(self, order_depth: OrderDepth, timespan:int, width: float, picnic_basket1_take_width: float, position: int, position_limit: int) -> List[Order]:
+    def picnic_basket1_orders(self, order_depth: OrderDepth, timespan:int, width: float, picnic_basket1_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -587,7 +587,7 @@ class Trader:
             fair_value = mmmid_price
 
             # only taking best bid/ask
-            buy_order_volume, sell_order_volume = self.take_best_orders(Product.PICNIC_BASKET1, fair_value, picnic_basket1_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.PICNIC_BASKET1, fair_value, picnic_basket1_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, adverse_vale)
             
             # Clear Position Orders
             buy_order_volume, sell_order_volume = self.clear_position_order(Product.PICNIC_BASKET1, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
@@ -603,7 +603,7 @@ class Trader:
         return orders
     
     
-    def picnic_basket2_orders(self, order_depth: OrderDepth, timespan:int, width: float, picnic_basket2_take_width: float, position: int, position_limit: int) -> List[Order]:
+    def picnic_basket2_orders(self, order_depth: OrderDepth, timespan:int, width: float, picnic_basket2_take_width: float, position: int, position_limit: int, adverse_vale) -> List[Order]:
         orders: List[Order] = []
 
         buy_order_volume = 0
@@ -638,7 +638,7 @@ class Trader:
             fair_value = mmmid_price
 
             # only taking best bid/ask
-            buy_order_volume, sell_order_volume = self.take_best_orders(Product.PICNIC_BASKET2, fair_value, picnic_basket2_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, 50)
+            buy_order_volume, sell_order_volume = self.take_best_orders(Product.PICNIC_BASKET2, fair_value, picnic_basket2_take_width, orders, order_depth, position, buy_order_volume, sell_order_volume, True, adverse_vale)
             
             # Clear Position Orders
             buy_order_volume, sell_order_volume = self.clear_position_order(Product.PICNIC_BASKET2, fair_value, 2, orders, order_depth, position, buy_order_volume, sell_order_volume)
@@ -662,44 +662,51 @@ class Trader:
     def run(self, state: TradingState):
         result = {}
 
-        rainforest_resin_fair_value = 10000  # Participant should calculate this value
-        rainforest_resin_width = 13.5#2
+        rainforest_resin_fair_value = 10000  
+        rainforest_resin_width = 13.5
         rainforest_resin_position_limit = 50
 
-        kelp_make_width = 2.75#3.5
+        kelp_make_width = 2.75
         kelp_take_width = 1
         kelp_position_limit = 50
         kelp_timemspan = 10
+        kelp_adverse = 
         
-        squid_ink_make_width = 2.65#3.5
+        squid_ink_make_width = 2.65
         squid_ink_take_width = 1
         squid_ink_position_limit = 50
         squid_ink_timemspan = 10
+        squid_ink_adverse = 
         
         jams_make_width = 1.6
         jams_take_width = 0.65
         jams_position_limit = 350
         jams_timemspan = 10
+        jams_adverse = 
 
         croissants_make_width = 1.2
         croissants_take_width = 0.5
         croissants_position_limit = 250
         croissants_timemspan = 10
+        croissants_adverse = 
         
         djembes_make_width = 1.25
         djembes_take_width = 0.5
         djembes_position_limit = 60
         djembes_timemspan = 10
+        djembes_adverse = 
 
         picnic_basket1_make_width = 30
         picnic_basket1_take_width = 12
         picnic_basket1_position_limit = 60
         picnic_basket1_timemspan = 10
+        picnic_basket1_adverse = 
  
         picnic_basket2_make_width = 30
         picnic_basket2_take_width = 12
         picnic_basket2_position_limit = 100
         picnic_basket2_timemspan = 10
+        picnic_basket2_adverse = 
         
         # traderData = jsonpickle.decode(state.traderData)
         # print(state.traderData)
@@ -714,42 +721,42 @@ class Trader:
 
         if Product.KELP in state.order_depths:
             kelp_position = state.position[Product.KELP] if Product.KELP in state.position else 0
-            kelp_orders = self.kelp_orders(state.order_depths[Product.KELP], kelp_timemspan, kelp_make_width, kelp_take_width, kelp_position, kelp_position_limit)
+            kelp_orders = self.kelp_orders(state.order_depths[Product.KELP], kelp_timemspan, kelp_make_width, kelp_take_width, kelp_position, kelp_position_limit, kelp_adverse)
             result[Product.KELP] = kelp_orders
 
         if Product.SQUID_INK in state.order_depths:
             squid_ink_position = state.position[Product.SQUID_INK] if Product.SQUID_INK in state.position else 0
-            squid_ink_orders = self.squid_ink_orders(state.order_depths[Product.SQUID_INK], squid_ink_timemspan, squid_ink_make_width, squid_ink_take_width, squid_ink_position, squid_ink_position_limit)
+            squid_ink_orders = self.squid_ink_orders(state.order_depths[Product.SQUID_INK], squid_ink_timemspan, squid_ink_make_width, squid_ink_take_width, squid_ink_position, squid_ink_position_limit, squid_ink_adverse)
             result[Product.SQUID_INK] = squid_ink_orders
         
         # Picnic 1
         if Product.PICNIC_BASKET1 in state.order_depths:
             picnic_basket1_position = state.position[Product.PICNIC_BASKET1] if Product.PICNIC_BASKET1 in state.position else 0
-            picnic_basket1_orders = self.picnic_basket1_orders(state.order_depths[Product.PICNIC_BASKET1], picnic_basket1_timemspan, picnic_basket1_make_width, picnic_basket1_take_width, picnic_basket1_position, picnic_basket1_position_limit)
+            picnic_basket1_orders = self.picnic_basket1_orders(state.order_depths[Product.PICNIC_BASKET1], picnic_basket1_timemspan, picnic_basket1_make_width, picnic_basket1_take_width, picnic_basket1_position, picnic_basket1_position_limit, picnic_basket1_adverse)
             result[Product.PICNIC_BASKET1] = picnic_basket1_orders
             
         # Picnic 2
         if Product.PICNIC_BASKET2 in state.order_depths:
             picnic_basket2_position = state.position[Product.PICNIC_BASKET2] if Product.PICNIC_BASKET2 in state.position else 0
-            picnic_basket2_orders = self.picnic_basket2_orders(state.order_depths[Product.PICNIC_BASKET2], picnic_basket2_timemspan, picnic_basket2_make_width, picnic_basket2_take_width, picnic_basket2_position, picnic_basket2_position_limit)
+            picnic_basket2_orders = self.picnic_basket2_orders(state.order_depths[Product.PICNIC_BASKET2], picnic_basket2_timemspan, picnic_basket2_make_width, picnic_basket2_take_width, picnic_basket2_position, picnic_basket2_position_limit, picnic_basket2_adversez)
             result[Product.PICNIC_BASKET2] = picnic_basket2_orders
             
         # Jam
         if Product.JAMS in state.order_depths:
             jams_position = state.position[Product.JAMS] if Product.JAMS in state.position else 0
-            jams_orders = self.jams_orders(state.order_depths[Product.JAMS], jams_timemspan, jams_make_width, jams_take_width, jams_position, jams_position_limit)
+            jams_orders = self.jams_orders(state.order_depths[Product.JAMS], jams_timemspan, jams_make_width, jams_take_width, jams_position, jams_position_limit, jams_adverse)
             result[Product.JAMS] = jams_orders
             
         # Croissants
         if Product.CROISSANTS in state.order_depths:
             croissants_position = state.position[Product.CROISSANTS] if Product.CROISSANTS in state.position else 0
-            croissants_orders = self.croissants_orders(state.order_depths[Product.CROISSANTS], croissants_timemspan, croissants_make_width, croissants_take_width, croissants_position, croissants_position_limit)
+            croissants_orders = self.croissants_orders(state.order_depths[Product.CROISSANTS], croissants_timemspan, croissants_make_width, croissants_take_width, croissants_position, croissants_position_limit, croissants_adverse)
             result[Product.CROISSANTS] = croissants_orders
             
         # Djemebes
         if Product.DJEMBES in state.order_depths:
             djembes_position = state.position[Product.DJEMBES] if Product.DJEMBES in state.position else 0
-            djembes_orders = self.djembes_orders(state.order_depths[Product.DJEMBES], djembes_timemspan, djembes_make_width, djembes_take_width, djembes_position, djembes_position_limit)
+            djembes_orders = self.djembes_orders(state.order_depths[Product.DJEMBES], djembes_timemspan, djembes_make_width, djembes_take_width, djembes_position, djembes_position_limit, djembes_adverse)
             result[Product.DJEMBES] = djembes_orders
 
         
