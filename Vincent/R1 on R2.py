@@ -676,31 +676,26 @@ class Trader:
         squid_ink_position_limit = 50
         squid_ink_timemspan = 10
         
-
         jams_make_width = 1.6
         jams_take_width = 0.65
         jams_position_limit = 350
         jams_timemspan = 10
-        
 
         croissants_make_width = 1.2
         croissants_take_width = 0.5
         croissants_position_limit = 250
         croissants_timemspan = 10
         
-        # NOT UPDATED
         djembes_make_width = 1.25
         djembes_take_width = 0.5
         djembes_position_limit = 60
         djembes_timemspan = 10
-        
-        # NOT UPDATED
+
         picnic_basket1_make_width = 30
         picnic_basket1_take_width = 12
         picnic_basket1_position_limit = 60
         picnic_basket1_timemspan = 10
-        
-        # NOT UPDATED
+ 
         picnic_basket2_make_width = 30
         picnic_basket2_take_width = 12
         picnic_basket2_position_limit = 100
