@@ -570,117 +570,119 @@ class Trader:
 
         return orders, buy_order_volume, sell_order_volume
     
-    def jams_orders(self, order_depth: OrderDepth, position: int, timemspan: int = 10) -> List[Order]:
-        orders: List[Order] = []
-        buy_order_volume = 0
-        sell_order_volume = 0
-        position_limit = self.LIMIT[Product.JAMS]
+    # def jams_orders(self, order_depth: OrderDepth, position: int, timemspan: int = 10) -> List[Order]:
+    #     orders: List[Order] = []
+    #     buy_order_volume = 0
+    #     sell_order_volume = 0
+    #     position_limit = self.LIMIT[Product.JAMS]
 
-        if len(order_depth.buy_orders) == 0 or len(order_depth.sell_orders) == 0:
-            return orders  # No liquidity
+    #     if len(order_depth.buy_orders) == 0 or len(order_depth.sell_orders) == 0:
+    #         return orders  # No liquidity
 
-        best_bid = max(order_depth.buy_orders.keys())
-        best_ask = min(order_depth.sell_orders.keys())
+    #     best_bid = max(order_depth.buy_orders.keys())
+    #     best_ask = min(order_depth.sell_orders.keys())
 
-        filtered_bid = [p for p in order_depth.buy_orders if abs(order_depth.buy_orders[p]) >= 15]
-        filtered_ask = [p for p in order_depth.sell_orders if abs(order_depth.sell_orders[p]) >= 15]
+    #     filtered_bid = [p for p in order_depth.buy_orders if abs(order_depth.buy_orders[p]) >= 15]
+    #     filtered_ask = [p for p in order_depth.sell_orders if abs(order_depth.sell_orders[p]) >= 15]
 
-        mm_bid = max(filtered_bid) if filtered_bid else best_bid
-        mm_ask = min(filtered_ask) if filtered_ask else best_ask
+    #     mm_bid = max(filtered_bid) if filtered_bid else best_bid
+    #     mm_ask = min(filtered_ask) if filtered_ask else best_ask
 
-        mid = (mm_bid + mm_ask) / 2
-        fair_value = mid
+    #     mid = (mm_bid + mm_ask) / 2
+    #     fair_value = mid
 
-        # Take orders if profitable
-        if best_ask < fair_value - 1 and position < position_limit:
-            quantity = min(-order_depth.sell_orders[best_ask], position_limit - position)
-            orders.append(Order(Product.JAMS, best_ask, quantity))
+    #     # Take orders if profitable
+    #     if best_ask < fair_value - 1 and position < position_limit:
+    #         quantity = min(-order_depth.sell_orders[best_ask], position_limit - position)
+    #         orders.append(Order(Product.JAMS, best_ask, quantity))
 
-        if best_bid > fair_value + 1 and position > -position_limit:
-            quantity = min(order_depth.buy_orders[best_bid], position_limit + position)
-            orders.append(Order(Product.JAMS, best_bid, -quantity))
+    #     if best_bid > fair_value + 1 and position > -position_limit:
+    #         quantity = min(order_depth.buy_orders[best_bid], position_limit + position)
+    #         orders.append(Order(Product.JAMS, best_bid, -quantity))
 
-        # Market make around fair value
-        spread = 3  # Customize this
-        buy_price = round(fair_value - spread)
-        sell_price = round(fair_value + spread)
+    #     # Market make around fair value
+    #     spread = 3  # Customize this
+    #     buy_price = round(fair_value - spread)
+    #     sell_price = round(fair_value + spread)
 
-        if position + buy_order_volume < position_limit:
-            orders.append(Order(Product.JAMS, buy_price, position_limit - position))
+    #     if position + buy_order_volume < position_limit:
+    #         orders.append(Order(Product.JAMS, buy_price, position_limit - position))
 
-        if position - sell_order_volume > -position_limit:
-            orders.append(Order(Product.JAMS, sell_price, -position_limit - position))
+    #     if position - sell_order_volume > -position_limit:
+    #         orders.append(Order(Product.JAMS, sell_price, -position_limit - position))
 
-        return orders
-    def croissants_orders(self, order_depth: OrderDepth, position: int,) -> List[Order]:
-        orders: List[Order] = []
+    #     return orders
+    
+    
+    # def croissants_orders(self, order_depth: OrderDepth, position: int,) -> List[Order]:
+    #     orders: List[Order] = []
 
-        buy_order_volume = 0
-        sell_order_volume = 0
-        params = self.params[Product.CROISSANTS]
-        timespan = params["timespan"]
+    #     buy_order_volume = 0
+    #     sell_order_volume = 0
+    #     params = self.params[Product.CROISSANTS]
+    #     timespan = params["timespan"]
 
-        if len(order_depth.sell_orders) != 0 and len(order_depth.buy_orders) != 0:
-            best_ask = min(order_depth.sell_orders.keys())
-            best_bid = max(order_depth.buy_orders.keys())
+    #     if len(order_depth.sell_orders) != 0 and len(order_depth.buy_orders) != 0:
+    #         best_ask = min(order_depth.sell_orders.keys())
+    #         best_bid = max(order_depth.buy_orders.keys())
 
-            filtered_ask = [price for price in order_depth.sell_orders if abs(order_depth.sell_orders[price]) >= params["adverse_volume"]]
-            filtered_bid = [price for price in order_depth.buy_orders if abs(order_depth.buy_orders[price]) >= params["adverse_volume"]]
+    #         filtered_ask = [price for price in order_depth.sell_orders if abs(order_depth.sell_orders[price]) >= params["adverse_volume"]]
+    #         filtered_bid = [price for price in order_depth.buy_orders if abs(order_depth.buy_orders[price]) >= params["adverse_volume"]]
 
-            mm_ask = min(filtered_ask) if filtered_ask else best_ask
-            mm_bid = max(filtered_bid) if filtered_bid else best_bid
-            mmmid_price = (mm_ask + mm_bid) / 2
+    #         mm_ask = min(filtered_ask) if filtered_ask else best_ask
+    #         mm_bid = max(filtered_bid) if filtered_bid else best_bid
+    #         mmmid_price = (mm_ask + mm_bid) / 2
 
-            # Fair value history tracking (optional, you can skip if not used)
-            self.squid_ink_prices.append(mmmid_price)
-            if len(self.squid_ink_prices) > timespan:
-                self.squid_ink_prices.pop(0)
+    #         # Fair value history tracking (optional, you can skip if not used)
+    #         self.squid_ink_prices.append(mmmid_price)
+    #         if len(self.squid_ink_prices) > timespan:
+    #             self.squid_ink_prices.pop(0)
 
-            fair_value = mmmid_price
+    #         fair_value = mmmid_price
 
-            # Take best orders
-            buy_order_volume, sell_order_volume = self.take_best_orders(
-                Product.CROISSANTS,
-                fair_value,
-                params["take_width"],
-                orders,
-                order_depth,
-                position,
-                buy_order_volume,
-                sell_order_volume,
-                True,
-                params["adverse_volume"]
-            )
+    #         # Take best orders
+    #         buy_order_volume, sell_order_volume = self.take_best_orders(
+    #             Product.CROISSANTS,
+    #             fair_value,
+    #             params["take_width"],
+    #             orders,
+    #             order_depth,
+    #             position,
+    #             buy_order_volume,
+    #             sell_order_volume,
+    #             True,
+    #             params["adverse_volume"]
+    #         )
 
-            # Clear orders
-            buy_order_volume, sell_order_volume = self.clear_position_order(
-                Product.CROISSANTS,
-                fair_value,
-                params["clear_width"],
-                orders,
-                order_depth,
-                position,
-                buy_order_volume,
-                sell_order_volume
-            )
+    #         # Clear orders
+    #         buy_order_volume, sell_order_volume = self.clear_position_order(
+    #             Product.CROISSANTS,
+    #             fair_value,
+    #             params["clear_width"],
+    #             orders,
+    #             order_depth,
+    #             position,
+    #             buy_order_volume,
+    #             sell_order_volume
+    #         )
 
-            # Market making
-            aaf = [p for p in order_depth.sell_orders if p > fair_value + 1]
-            bbf = [p for p in order_depth.buy_orders if p < fair_value - 1]
-            baaf = min(aaf) if aaf else fair_value + 2
-            bbbf = max(bbf) if bbf else fair_value - 2
+    #         # Market making
+    #         aaf = [p for p in order_depth.sell_orders if p > fair_value + 1]
+    #         bbf = [p for p in order_depth.buy_orders if p < fair_value - 1]
+    #         baaf = min(aaf) if aaf else fair_value + 2
+    #         bbbf = max(bbf) if bbf else fair_value - 2
 
-            buy_order_volume, sell_order_volume = self.market_make(
-                Product.CROISSANTS,
-                orders,
-                bbbf + 1,
-                baaf - 1,
-                position,
-                buy_order_volume,
-                sell_order_volume
-            )
+    #         buy_order_volume, sell_order_volume = self.market_make(
+    #             Product.CROISSANTS,
+    #             orders,
+    #             bbbf + 1,
+    #             baaf - 1,
+    #             position,
+    #             buy_order_volume,
+    #             sell_order_volume
+    #         )
 
-        return orders
+    #     return orders
 
 
 
@@ -1684,20 +1686,20 @@ class Trader:
             result[Product.JAMS] = spread2_orders[Product.JAMS]
             result[Product.PICNIC_BASKET2] = spread2_orders[Product.PICNIC_BASKET2]
         
-        if Product.JAMS in state.order_depths:
-            jams_position = state.position.get(Product.JAMS, 0)
-            jams_orders = self.jams_orders(state.order_depths[Product.JAMS], jams_position)
-            if Product.JAMS in result:
-                result[Product.JAMS] += jams_orders  # combine with spread orders
-            else:
-                result[Product.JAMS] = jams_orders
+        # if Product.JAMS in state.order_depths:
+        #     jams_position = state.position.get(Product.JAMS, 0)
+        #     jams_orders = self.jams_orders(state.order_depths[Product.JAMS], jams_position)
+        #     if Product.JAMS in result:
+        #         result[Product.JAMS] += jams_orders  # combine with spread orders
+        #     else:
+        #         result[Product.JAMS] = jams_orders
         
-        if Product.CROISSANTS in state.order_depths:
-            croissants_position = state.position.get(Product.CROISSANTS, 0)
-            result[Product.CROISSANTS] = self.croissants_orders(
-                state.order_depths[Product.CROISSANTS],
-                croissants_position
-    )
+    #     if Product.CROISSANTS in state.order_depths:
+    #         croissants_position = state.position.get(Product.CROISSANTS, 0)
+    #         result[Product.CROISSANTS] = self.croissants_orders(
+    #             state.order_depths[Product.CROISSANTS],
+    #             croissants_position
+    # )
 
 
 
