@@ -41,7 +41,7 @@ PARAMS = {
         "clear_width": 0,
         "prevent_adverse": True,
         "adverse_volume": 15,
-        "reversion_beta": -0.229,
+        "reversion_beta": -0.26917,
         "kelp_min_edge": 2,
     },
     Product.SQUID_INK: {
@@ -49,7 +49,7 @@ PARAMS = {
         "clear_width": 2,
         "prevent_adverse": True,
         "adverse_volume": 15,
-        "reversion_beta": -0.229,
+        "reversion_beta": -0.1492,
         "squid_ink_min_edge": 2,
     },
     # # Product.ORCHIDS: {
@@ -59,49 +59,49 @@ PARAMS = {
     #     "make_probability": 0.800,
     # },
     Product.SPREAD1: {
-        "default_spread1_mean": 48.76243333, #379.50439988484239,
-        "default_spread1_std": 85.11945081,#76.07966,
+        "default_spread1_mean": 43.9226,#48.76243333, #379.50439988484239,
+        "default_spread1_std": 85.2931783102648,#85.11945081,#76.07966,
         "spread1_std_window": 10,
         "zscore_threshold": 2,
         "target_position": 60,
     },
     Product.SPREAD2: {
-        "default_spread2_mean": 30.23596667, #379.50439988484239,
-        "default_spread2_std": 59.84920022,#76.07966,
+        "default_spread2_mean": -3.83915,#30.23596667, #379.50439988484239,
+        "default_spread2_std": 55.11981015592001,#59.84920022,#76.07966,
         "spread2_std_window": 400,
         "zscore_threshold": 2,
         "target_position": 100,
     },
     Product.VOLCANIC_ROCK_VOUCHER_9500: {
-        "mean_volatility": 	0.00261,
+        "mean_volatility": 	0.0155,
         "strike": 9500,
         "starting_time_to_expiry": 245 / 250,
         "std_window": 30,
         "zscore_threshold": 5.1
     },
     Product.VOLCANIC_ROCK_VOUCHER_9750: {
-        "mean_volatility": 	0.00420,
+        "mean_volatility": 	0.0126,
         "strike": 9750,
         "starting_time_to_expiry": 245 / 250,
         "std_window": 30,
         "zscore_threshold": 5.1
     },
     Product.VOLCANIC_ROCK_VOUCHER_10000: {
-        "mean_volatility": 	0.01372,
+        "mean_volatility": 	0.0102,
         "strike": 10000,
         "starting_time_to_expiry": 245 / 250,
         "std_window": 30,
         "zscore_threshold": 5.1
     },
     Product.VOLCANIC_ROCK_VOUCHER_10250: {
-        "mean_volatility": 	0.01544,
+        "mean_volatility": 	0.009285,
         "strike": 10250,
         "starting_time_to_expiry": 245 / 250,
         "std_window": 30,
         "zscore_threshold": 5.1
     },
     Product.VOLCANIC_ROCK_VOUCHER_10500: {
-        "mean_volatility": 	0.04179,
+        "mean_volatility": 	0.0095675,
         "strike": 10500,
         "starting_time_to_expiry": 245 / 250,
         "std_window": 30,
