@@ -1969,7 +1969,7 @@ class Trader:
             result[Product.CROISSANTS] = spread1_orders[Product.CROISSANTS]
             result[Product.JAMS] = spread1_orders[Product.JAMS]
             result[Product.DJEMBES] = spread1_orders[Product.DJEMBES]
-            result[Product.PICNIC_BASKET1] = spread1_orders[Product.PICNIC_BASKET1]
+            #result[Product.PICNIC_BASKET1] = spread1_orders[Product.PICNIC_BASKET1]
 
         if Product.SPREAD2 not in traderObject:
             traderObject[Product.SPREAD2] = {
@@ -1994,7 +1994,7 @@ class Trader:
         if spread2_orders != None:
             result[Product.CROISSANTS] = spread2_orders[Product.CROISSANTS]
             result[Product.JAMS] = spread2_orders[Product.JAMS]
-            result[Product.PICNIC_BASKET2] = spread2_orders[Product.PICNIC_BASKET2]
+            #result[Product.PICNIC_BASKET2] = spread2_orders[Product.PICNIC_BASKET2]
 
 
         if Product.VOLCANIC_ROCK_VOUCHER_9500 not in traderObject:
