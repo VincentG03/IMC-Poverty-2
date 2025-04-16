@@ -1278,8 +1278,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] - volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
         
         elif target_volcanic_rock_quantity < 0:
             # Sell VOLCANIC_ROCK
@@ -1288,8 +1288,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
         
         return orders
     
@@ -1322,8 +1322,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] - volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
         
         elif target_volcanic_rock_quantity < 0:
             # Sell VOLCANIC_ROCK
@@ -1332,8 +1332,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
         
         return orders
     
@@ -1366,8 +1366,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] - volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
         
         elif target_volcanic_rock_quantity < 0:
             # Sell VOLCANIC_ROCK
@@ -1376,8 +1376,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
         
         return orders
     
@@ -1410,8 +1410,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] - volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
         
         elif target_volcanic_rock_quantity < 0:
             # Sell VOLCANIC_ROCK
@@ -1420,8 +1420,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
         
         return orders
 
@@ -1454,8 +1454,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] - volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_ask, round(quantity)))
         
         elif target_volcanic_rock_quantity < 0:
             # Sell VOLCANIC_ROCK
@@ -1464,8 +1464,8 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-            if quantity > 0:
-                orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
+            # if quantity > 0:
+            #     orders.append(Order(Product.VOLCANIC_ROCK, best_bid, -round(quantity)))
         
         return orders
 
@@ -2066,8 +2066,8 @@ class Trader:
                 result[Product.VOLCANIC_ROCK_VOUCHER_9500] = volcanic_rock_voucher_9500_take_orders + volcanic_rock_voucher_9500_make_orders
                 # print(f"VOLCANIC_ROCK_VOUCHER_9500: {result[Product.VOLCANIC_ROCK_VOUCHER_9500]}")
 
-            if volcanic_rock_orders != None:
-                result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
+            # if volcanic_rock_orders != None:
+            #     result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
                 # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
         
         if Product.VOLCANIC_ROCK_VOUCHER_9750 not in traderObject:
@@ -2139,9 +2139,9 @@ class Trader:
                 result[Product.VOLCANIC_ROCK_VOUCHER_9750] = volcanic_rock_voucher_9750_take_orders + volcanic_rock_voucher_9750_make_orders
                 # print(f"VOLCANIC_ROCK_VOUCHER_9750: {result[Product.VOLCANIC_ROCK_VOUCHER_9750]}")
 
-            if volcanic_rock_orders != None:
-                result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
-                # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
+            # if volcanic_rock_orders != None:
+            #     result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
+            #     # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
 
 
         if Product.VOLCANIC_ROCK_VOUCHER_10000 not in traderObject:
@@ -2212,9 +2212,9 @@ class Trader:
                 result[Product.VOLCANIC_ROCK_VOUCHER_10000] = volcanic_rock_voucher_10000_take_orders + volcanic_rock_voucher_10000_make_orders
                 # print(f"VOLCANIC_ROCK_VOUCHER_10000: {result[Product.VOLCANIC_ROCK_VOUCHER_10000]}")
 
-            if volcanic_rock_orders != None:
-                result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
-                # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
+            # if volcanic_rock_orders != None:
+            #     result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
+            #     # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
 
         if Product.VOLCANIC_ROCK_VOUCHER_10250 not in traderObject:
             traderObject[Product.VOLCANIC_ROCK_VOUCHER_10250] = {
@@ -2284,9 +2284,9 @@ class Trader:
                 result[Product.VOLCANIC_ROCK_VOUCHER_10250] = volcanic_rock_voucher_10250_take_orders + volcanic_rock_voucher_10250_make_orders
                 # print(f"VOLCANIC_ROCK_VOUCHER_10250: {result[Product.VOLCANIC_ROCK_VOUCHER_10250]}")
 
-            if volcanic_rock_orders != None:
-                result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
-                # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
+            # if volcanic_rock_orders != None:
+            #     result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
+            #     # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
         
         if Product.VOLCANIC_ROCK_VOUCHER_10500 not in traderObject:
             traderObject[Product.VOLCANIC_ROCK_VOUCHER_10500] = {
@@ -2356,9 +2356,9 @@ class Trader:
                 result[Product.VOLCANIC_ROCK_VOUCHER_10500] = volcanic_rock_voucher_10500_take_orders + volcanic_rock_voucher_10500_make_orders
                 # print(f"VOLCANIC_ROCK_VOUCHER_10500: {result[Product.VOLCANIC_ROCK_VOUCHER_10500]}")
 
-            if volcanic_rock_orders != None:
-                result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
-                # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
+            # if volcanic_rock_orders != None:
+            #     result[Product.VOLCANIC_ROCK] = volcanic_rock_orders
+            #     # print(f"VOLCANIC_ROCK: {result[Product.VOLCANIC_ROCK]}")
 
         traderData = jsonpickle.encode(traderObject)
 
