@@ -12,7 +12,7 @@ class Product:
     RAINFOREST_RESIN = "RAINFOREST_RESIN"
     KELP = "KELP"
     SQUID_INK = "SQUID_INK"
-    # ORCHIDS = "ORCHIDS"
+    MAGNIFICENT_MACARONS = "MAGNIFICENT_MACARONS"
     PICNIC_BASKET1 = "PICNIC_BASKET1"
     PICNIC_BASKET2 = "PICNIC_BASKET2"
     CROISSANTS = "CROISSANTS"
@@ -52,12 +52,10 @@ PARAMS = {
         "reversion_beta": -0.1492,
         "squid_ink_min_edge": 2,
     },
-    # # Product.ORCHIDS: {
-    #     "picnic_basket1_beta": -5.2917,
-    #     "returns_threshold": 0.01,
-    #     "clear_threshold": 0,
-    #     "make_probability": 0.800,
-    # },
+    Product.MAGNIFICENT_MACARONS: {
+        "make_edge": 2,
+        "make_probability": 0.800,
+    },
     Product.SPREAD1: {
         "default_spread1_mean": 48.7624,#43.9226,#48.76243333, #379.50439988484239,
         "default_spread1_std": 83.5354,#85.2931783102648,#85.11945081,#76.07966,
@@ -193,12 +191,19 @@ class Trader:
         if params is None:
             params = PARAMS
         self.params = params
+        self.unhedged_delta = {
+            Product.VOLCANIC_ROCK_VOUCHER_9500: 0,
+            Product.VOLCANIC_ROCK_VOUCHER_9750: 0,
+            Product.VOLCANIC_ROCK_VOUCHER_10000: 0,
+            Product.VOLCANIC_ROCK_VOUCHER_10250: 0,
+            Product.VOLCANIC_ROCK_VOUCHER_10500: 0,
+}
 
         self.LIMIT = {
             Product.KELP: 50,
             Product.RAINFOREST_RESIN: 50,
             Product.SQUID_INK:50,
-            # Product.ORCHIDS: 100,
+            Product.MAGNIFICENT_MACARONS: 75,
             Product.PICNIC_BASKET1: 60,
             Product.PICNIC_BASKET2: 100,
             Product.CROISSANTS: 250,
@@ -611,8 +616,116 @@ class Trader:
         )
 
         return orders, buy_order_volume, sell_order_volume
+    
+    def magnificent_macarons_implied_bid_ask(
+        self,
+        observation: ConversionObservation,
+    ) -> (float, float):
+        return (
+            observation.bidPrice
+            - observation.exportTariff
+            - observation.transportFees
+            - 0.1,
+            observation.askPrice + observation.importTariff + observation.transportFees,
+        )
+    
+    def magnificent_macarons_arb_take(
+        self,
+        order_depth: OrderDepth,
+        observation: ConversionObservation,
+        position: int,
+    ) -> (List[Order], int, int):
+        orders: List[Order] = []
+        position_limit = self.LIMIT[Product.MAGNIFICENT_MACARONS]
+        buy_order_volume = 0
+        sell_order_volume = 0
 
-   
+        implied_bid, implied_ask = self.magnificent_macarons_implied_bid_ask(observation)
+
+        buy_quantity = position_limit - position
+        sell_quantity = position_limit + position
+
+        ask = round(observation.askPrice) - 2
+
+        if ask > implied_ask:
+            edge = (ask - implied_ask) * self.params[Product.MAGNIFICENT_MACARONS]["make_probability"]
+        else:
+            edge = 0
+
+        for price in sorted(list(order_depth.sell_orders.keys())):
+            if price > implied_bid - edge:
+                break
+
+            if price < implied_bid - edge:
+                quantity = min(
+                    abs(order_depth.sell_orders[price]), buy_quantity
+                )  # max amount to buy
+                if quantity > 0:
+                    orders.append(Order(Product.MAGNIFICENT_MACARONS, round(price), quantity))
+                    buy_order_volume += quantity
+
+        for price in sorted(list(order_depth.buy_orders.keys()), reverse=True):
+            if price < implied_ask + edge:
+                break
+
+            if price > implied_ask + edge:
+                quantity = min(
+                    abs(order_depth.buy_orders[price]), sell_quantity
+                )  # max amount to sell
+                if quantity > 0:
+                    orders.append(Order(Product.MAGNIFICENT_MACARONS, round(price), -quantity))
+                    sell_order_volume += quantity
+
+        return orders, buy_order_volume, sell_order_volume
+    
+    def magnificent_macarons_arb_clear(self, position: int) -> int:
+        conversions = -position
+        return conversions
+    
+    def magnificent_macarons_arb_make(
+        self,
+        observation: ConversionObservation,
+        position: int,
+        buy_order_volume: int,
+        sell_order_volume: int,
+    ) -> (List[Order], int, int):
+        orders: List[Order] = []
+        position_limit = self.LIMIT[Product.MAGNIFICENT_MACARONS]
+
+        # Implied Bid = observation.bidPrice - observation.exportTariff - observation.transportFees - 0.1
+        # Implied Ask = observation.askPrice + observation.importTariff + observation.transportFees
+        implied_bid, implied_ask = self.magnificent_macarons_implied_bid_ask(observation)
+
+        aggressive_ask = round(observation.askPrice) - 2
+        aggressive_bid = round(observation.bidPrice) + 2
+
+        if aggressive_bid < implied_bid:
+            bid = aggressive_bid
+        else:
+            bid = implied_bid - 1
+
+        if aggressive_ask >= implied_ask + 0.5:
+            ask = aggressive_ask
+        elif aggressive_ask + 1 >= implied_ask + 0.5:
+            ask = aggressive_ask + 1
+        else:
+            ask = implied_ask + 2
+
+        print(f"ALGO_ASK: {round(ask)}")
+        print(f"IMPLIED_BID: {implied_bid}")
+        print(f"IMPLIED_ASK: {implied_ask}")
+        print(f"FOREIGN_ASK: {observation.askPrice}")
+        print(f"FOREIGN_BID: {observation.bidPrice}")
+
+        buy_quantity = position_limit - (position + buy_order_volume)
+        if buy_quantity > 0:
+            orders.append(Order(Product.MAGNIFICENT_MACARONS, round(bid), buy_quantity))
+
+        sell_quantity = position_limit + (position - sell_order_volume)
+        if sell_quantity > 0:
+            orders.append(Order(Product.MAGNIFICENT_MACARONS, round(ask), -sell_quantity))
+
+        return orders, buy_order_volume, sell_order_volume
     def get_swmid(self, order_depth) -> float:
         best_bid = max(order_depth.buy_orders.keys())
         best_ask = min(order_depth.sell_orders.keys())
@@ -626,7 +739,6 @@ class Trader:
         self, order_depths: Dict[str, OrderDepth]
     ) -> OrderDepth:
         # Constants
-        CROISSANTS_PER_BASKET = BASKET_WEIGHTS1[Product.CROISSANTS]
         JAMS_PER_BASKET = BASKET_WEIGHTS1[Product.JAMS]
         DJEMBES_PER_BASKET = BASKET_WEIGHTS1[Product.DJEMBES]
 
@@ -634,16 +746,6 @@ class Trader:
         synthetic1_order_price = OrderDepth()
 
         # Calculate the best bid and ask for each component
-        croissants_best_bid = (
-            max(order_depths[Product.CROISSANTS].buy_orders.keys())
-            if order_depths[Product.CROISSANTS].buy_orders
-            else 0
-        )
-        croissants_best_ask = (
-            min(order_depths[Product.CROISSANTS].sell_orders.keys())
-            if order_depths[Product.CROISSANTS].sell_orders
-            else float("inf")
-        )
         jams_best_bid = (
             max(order_depths[Product.JAMS].buy_orders.keys())
             if order_depths[Product.JAMS].buy_orders
@@ -667,22 +769,16 @@ class Trader:
 
         # Calculate the implied bid and ask for the synthetic1 basket
         implied_bid = (
-            croissants_best_bid * CROISSANTS_PER_BASKET
             + jams_best_bid * JAMS_PER_BASKET
             + djembes_best_bid * DJEMBES_PER_BASKET
         )
         implied_ask = (
-            croissants_best_ask * CROISSANTS_PER_BASKET
             + jams_best_ask * JAMS_PER_BASKET
             + djembes_best_ask * DJEMBES_PER_BASKET
         )
 
         # Calculate the maximum number of synthetic1 baskets available at the implied bid and ask
         if implied_bid > 0:
-            croissants_bid_volume = (
-                order_depths[Product.CROISSANTS].buy_orders[croissants_best_bid]
-                // CROISSANTS_PER_BASKET
-            )
             jams_bid_volume = (
                 order_depths[Product.JAMS].buy_orders[jams_best_bid]
                 // JAMS_PER_BASKET
@@ -692,15 +788,11 @@ class Trader:
                 // DJEMBES_PER_BASKET
             )
             implied_bid_volume = min(
-                croissants_bid_volume, jams_bid_volume, djembes_bid_volume
+                jams_bid_volume, djembes_bid_volume
             )
             synthetic1_order_price.buy_orders[implied_bid] = implied_bid_volume
 
         if implied_ask < float("inf"):
-            croissants_ask_volume = (
-                -order_depths[Product.CROISSANTS].sell_orders[croissants_best_ask]
-                // CROISSANTS_PER_BASKET
-            )
             jams_ask_volume = (
                 -order_depths[Product.JAMS].sell_orders[jams_best_ask]
                 // JAMS_PER_BASKET
@@ -710,7 +802,7 @@ class Trader:
                 // DJEMBES_PER_BASKET
             )
             implied_ask_volume = min(
-                croissants_ask_volume, jams_ask_volume, djembes_ask_volume
+                jams_ask_volume, djembes_ask_volume
             )
             synthetic1_order_price.sell_orders[implied_ask] = -implied_ask_volume
 
@@ -720,23 +812,12 @@ class Trader:
         self, order_depths: Dict[str, OrderDepth]
     ) -> OrderDepth:
         # Constants
-        CROISSANTS_PER_BASKET = BASKET_WEIGHTS2[Product.CROISSANTS]
         JAMS_PER_BASKET = BASKET_WEIGHTS2[Product.JAMS]
 
         # Initialize the synthetic2 basket order depth
         synthetic2_order_price = OrderDepth()
 
-        # Calculate the best bid and ask for each component
-        croissants_best_bid = (
-            max(order_depths[Product.CROISSANTS].buy_orders.keys())
-            if order_depths[Product.CROISSANTS].buy_orders
-            else 0
-        )
-        croissants_best_ask = (
-            min(order_depths[Product.CROISSANTS].sell_orders.keys())
-            if order_depths[Product.CROISSANTS].sell_orders
-            else float("inf")
-        )
+    
         jams_best_bid = (
             max(order_depths[Product.JAMS].buy_orders.keys())
             if order_depths[Product.JAMS].buy_orders
@@ -750,44 +831,36 @@ class Trader:
 
         # Calculate the implied bid and ask for the synthetic2 basket
         implied_bid = (
-            croissants_best_bid * CROISSANTS_PER_BASKET
-            + jams_best_bid * JAMS_PER_BASKET
+            jams_best_bid * JAMS_PER_BASKET
             
         )
         implied_ask = (
-            croissants_best_ask * CROISSANTS_PER_BASKET
-            + jams_best_ask * JAMS_PER_BASKET
+            jams_best_ask * JAMS_PER_BASKET
             
         )
 
         # Calculate the maximum number of synthetic2 baskets available at the implied bid and ask
         if implied_bid > 0:
-            croissants_bid_volume = (
-                order_depths[Product.CROISSANTS].buy_orders[croissants_best_bid]
-                // CROISSANTS_PER_BASKET
-            )
+            
             jams_bid_volume = (
                 order_depths[Product.JAMS].buy_orders[jams_best_bid]
                 // JAMS_PER_BASKET
             )
           
             implied_bid_volume = min(
-                croissants_bid_volume, jams_bid_volume,
+                jams_bid_volume,
             )
             synthetic2_order_price.buy_orders[implied_bid] = implied_bid_volume
 
         if implied_ask < float("inf"):
-            croissants_ask_volume = (
-                -order_depths[Product.CROISSANTS].sell_orders[croissants_best_ask]
-                // CROISSANTS_PER_BASKET
-            )
+            
             jams_ask_volume = (
                 -order_depths[Product.JAMS].sell_orders[jams_best_ask]
                 // JAMS_PER_BASKET
             )
             
             implied_ask_volume = min(
-                croissants_ask_volume, jams_ask_volume, 
+                jams_ask_volume, 
             )
             synthetic2_order_price.sell_orders[implied_ask] = -implied_ask_volume
 
@@ -798,7 +871,6 @@ class Trader:
     ) -> Dict[str, List[Order]]:
         # Initialize the dictionary to store component orders
         component_orders = {
-            Product.CROISSANTS: [],
             Product.JAMS: [],
             Product.DJEMBES: [],
         }
@@ -827,9 +899,6 @@ class Trader:
             # Check if the synthetic1 basket order aligns with the best bid or ask
             if quantity > 0 and price >= best_ask:
                 # Buy order - trade components at their best ask prices
-                croissants_price = min(
-                    order_depths[Product.CROISSANTS].sell_orders.keys()
-                )
                 jams_price = min(
                     order_depths[Product.JAMS].sell_orders.keys()
                 )
@@ -846,11 +915,7 @@ class Trader:
                 continue
 
             # Create orders for each component
-            croissants_order = Order(
-                Product.CROISSANTS,
-                croissants_price,
-                quantity * BASKET_WEIGHTS1[Product.CROISSANTS],
-            )
+           
             jams_order = Order(
                 Product.JAMS,
                 jams_price,
@@ -861,7 +926,6 @@ class Trader:
             )
 
             # Add the component orders to the respective lists
-            component_orders[Product.CROISSANTS].append(croissants_order)
             component_orders[Product.JAMS].append(jams_order)
             component_orders[Product.DJEMBES].append(djembes_order)
 
@@ -872,7 +936,6 @@ class Trader:
     ) -> Dict[str, List[Order]]:
         # Initialize the dictionary to store component orders
         component_orders = {
-            Product.CROISSANTS: [],
             Product.JAMS: [],
         }
 
@@ -900,15 +963,11 @@ class Trader:
             # Check if the synthetic2 basket order aligns with the best bid or ask
             if quantity > 0 and price >= best_ask:
                 # Buy order - trade components at their best ask prices
-                croissants_price = min(
-                    order_depths[Product.CROISSANTS].sell_orders.keys()
-                )
                 jams_price = min(
                     order_depths[Product.JAMS].sell_orders.keys()
                 )
             elif quantity < 0 and price <= best_bid:
                 # Sell order - trade components at their best bid prices
-                croissants_price = max(order_depths[Product.CROISSANTS].buy_orders.keys())
                 jams_price = max(
                     order_depths[Product.JAMS].buy_orders.keys()
                 )
@@ -916,18 +975,12 @@ class Trader:
                 continue
 
             # Create orders for each component
-            croissants_order = Order(
-                Product.CROISSANTS,
-                croissants_price,
-                quantity * BASKET_WEIGHTS2[Product.CROISSANTS],
-            )
             jams_order = Order(
                 Product.JAMS,
                 jams_price,
                 quantity * BASKET_WEIGHTS2[Product.JAMS],
             )
 
-            component_orders[Product.CROISSANTS].append(croissants_order)
             component_orders[Product.JAMS].append(jams_order)
 
         return component_orders
@@ -1252,7 +1305,9 @@ class Trader:
             volcanic_rock_voucher_9500_position_after_trade = volcanic_rock_voucher_9500_position + sum(order.quantity for order in volcanic_rock_voucher_9500_orders)
         
         target_volcanic_rock_position = -delta * volcanic_rock_voucher_9500_position_after_trade
-        
+        total_target_qty = target_volcanic_rock_position - volcanic_rock_position
+        total_target_qty += self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_9500]
+
         if target_volcanic_rock_position == volcanic_rock_position:
             return None
         
@@ -1274,7 +1329,10 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-        
+        filled_qty = quantity if orders else 0
+        unfilled_qty = total_target_qty - filled_qty
+        self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_9500] = unfilled_qty
+
         return orders
     
     def volcanic_rock_hedge_orders_9750(
@@ -1292,6 +1350,10 @@ class Trader:
             volcanic_rock_voucher_9750_position_after_trade = volcanic_rock_voucher_9750_position + sum(order.quantity for order in volcanic_rock_voucher_9750_orders)
         
         target_volcanic_rock_position = -delta * volcanic_rock_voucher_9750_position_after_trade
+        total_target_qty = target_volcanic_rock_position - volcanic_rock_position
+
+        # Add unhedged leftover from last round
+        total_target_qty += self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_9750]
         
         if target_volcanic_rock_position == volcanic_rock_position:
             return None
@@ -1314,7 +1376,9 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-        
+        filled_qty = quantity if orders else 0
+        unfilled_qty = total_target_qty - filled_qty
+        self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_9750] = unfilled_qty
         return orders
     
     def volcanic_rock_hedge_orders_10000(
@@ -1332,7 +1396,10 @@ class Trader:
             volcanic_rock_voucher_10000_position_after_trade = volcanic_rock_voucher_10000_position + sum(order.quantity for order in volcanic_rock_voucher_10000_orders)
         
         target_volcanic_rock_position = -delta * volcanic_rock_voucher_10000_position_after_trade
-        
+        total_target_qty = target_volcanic_rock_position - volcanic_rock_position
+        # Add unhedged leftover from last round
+        total_target_qty += self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_10000]
+
         if target_volcanic_rock_position == volcanic_rock_position:
             return None
         
@@ -1354,7 +1421,9 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-        
+        filled_qty = quantity if orders else 0
+        unfilled_qty = total_target_qty - filled_qty
+        self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_10000] = unfilled_qty
         return orders
     
     def volcanic_rock_hedge_orders_10250(
@@ -1372,7 +1441,9 @@ class Trader:
             volcanic_rock_voucher_10250_position_after_trade = volcanic_rock_voucher_10250_position + sum(order.quantity for order in volcanic_rock_voucher_10250_orders)
         
         target_volcanic_rock_position = -delta * volcanic_rock_voucher_10250_position_after_trade
-        
+        total_target_qty = target_volcanic_rock_position - volcanic_rock_position
+        # Add unhedged leftover from last round
+        total_target_qty += self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_10250]
         if target_volcanic_rock_position == volcanic_rock_position:
             return None
         
@@ -1394,7 +1465,9 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-        
+        filled_qty = quantity if orders else 0
+        unfilled_qty = total_target_qty - filled_qty
+        self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_10250] = unfilled_qty
         return orders
 
     def volcanic_rock_hedge_orders_10500(
@@ -1412,7 +1485,10 @@ class Trader:
             volcanic_rock_voucher_10500_position_after_trade = volcanic_rock_voucher_10500_position + sum(order.quantity for order in volcanic_rock_voucher_10500_orders)
         
         target_volcanic_rock_position = -delta * volcanic_rock_voucher_10500_position_after_trade
-        
+        total_target_qty = target_volcanic_rock_position - volcanic_rock_position
+
+        # Add unhedged leftover from last round
+        total_target_qty += self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_10500]
         if target_volcanic_rock_position == volcanic_rock_position:
             return None
         
@@ -1434,7 +1510,9 @@ class Trader:
                 abs(target_volcanic_rock_quantity),
                 self.LIMIT[Product.VOLCANIC_ROCK] + volcanic_rock_position,
             )
-        
+        filled_qty = quantity if orders else 0
+        unfilled_qty = total_target_qty - filled_qty
+        self.unhedged_delta[Product.VOLCANIC_ROCK_VOUCHER_10500] = unfilled_qty
         return orders
 
     def volcanic_rock_voucher_9500_orders(
@@ -1901,8 +1979,35 @@ class Trader:
                 kelp_take_orders + kelp_clear_orders + kelp_make_orders
             )
 
-    
+        if Product.MAGNIFICENT_MACARONS in self.params and Product.MAGNIFICENT_MACARONS in state.order_depths:
+            magnificent_macarons_position = (
+                state.position[Product.MAGNIFICENT_MACARONS]
+                if Product.MAGNIFICENT_MACARONS in state.position
+                else 0
+            )
+            print(f"MAGNIFICENT_MACARONS POSITION: {magnificent_macarons_position}")
 
+            conversions = self.magnificent_macarons_arb_clear(magnificent_macarons_position)
+
+            magnificent_macarons_position = 0
+
+            magnificent_macarons_take_orders, buy_order_volume, sell_order_volume = (
+                self.magnificent_macarons_arb_take(
+                    state.order_depths[Product.MAGNIFICENT_MACARONS],
+                    state.observations.conversionObservations[Product.MAGNIFICENT_MACARONS],
+                    magnificent_macarons_position,
+                )
+            )
+
+            magnificent_macarons_make_orders, _, _ = self.magnificent_macarons_arb_make(
+                state.observations.conversionObservations[Product.MAGNIFICENT_MACARONS],
+                magnificent_macarons_position,
+                buy_order_volume,
+                sell_order_volume,
+            )
+
+            result[Product.MAGNIFICENT_MACARONS] = magnificent_macarons_take_orders + magnificent_macarons_make_orders
+        
         if Product.SPREAD1 not in traderObject:
             traderObject[Product.SPREAD1] = {
                 "spread1_history": [],
@@ -1924,9 +2029,9 @@ class Trader:
         )
 
         if spread1_orders != None:
-            result[Product.CROISSANTS] = spread1_orders[Product.CROISSANTS]
             result[Product.JAMS] = spread1_orders[Product.JAMS]
             result[Product.DJEMBES] = spread1_orders[Product.DJEMBES]
+            
 
         if Product.SPREAD2 not in traderObject:
             traderObject[Product.SPREAD2] = {
@@ -1949,7 +2054,6 @@ class Trader:
         )
 
         if spread2_orders != None:
-            result[Product.CROISSANTS] = spread2_orders[Product.CROISSANTS]
             result[Product.JAMS] = spread2_orders[Product.JAMS]
 
 
